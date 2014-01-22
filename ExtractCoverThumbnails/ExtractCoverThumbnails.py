@@ -41,7 +41,7 @@ for _file in os.listdir(_documents):
 						_opf_content = f.read()
 						_thumb_file = re.search('.+id="cover_img.+href="(.+)\/(.+)".+', _opf_content)
 						if _thumb_file:
-							os.rename(os.path.join(_tempdir, 'mobi7', _thumb_file.group(1), _thumb_file.group(2)), os.path.join(_kindle_path, 'system', 'thumbnails', 'thumbnail_' + _asin.group(1) + '_PDOC_portrait.jpg'))
+							shutil.move(os.path.join(_tempdir, 'mobi7', _thumb_file.group(1), _thumb_file.group(2)), os.path.join(_kindle_path, 'system', 'thumbnails', 'thumbnail_' + _asin.group(1) + '_PDOC_portrait.jpg'))
 							print 'Cover copied to your device…'
 			if os.path.isdir(_tempdir):
 				shutil.rmtree(_tempdir)
