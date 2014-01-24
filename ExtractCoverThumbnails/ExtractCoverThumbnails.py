@@ -24,10 +24,10 @@ _documents = os.path.join(_kindle_path, 'documents')
 
 for _file in os.listdir(_documents):
 	if _file.endswith('.azw3') or _file.endswith('.azw'):
-		print 'Processing file ' + _file + '...'
+		print('Processing file ' + _file + '...')
 		_asin = re.search('.+_(.+?)\..+', _file)
 		if not os.path.isfile(os.path.join(_kindle_path, 'system', 'thumbnails', 'thumbnail_' + _asin.group(1) + '_PDOC_portrait.jpg')) and not os.path.isfile(os.path.join(_kindle_path, 'system', 'thumbnails', 'thumbnail_' + _asin.group(1) + '_EBOK_portrait.jpg')):
-			print 'No cover found…'
+			print('No cover found…')
 			_tempdir = tempfile.mkdtemp()
 			with open(os.devnull, 'wb') as devnull:
 				subprocess.check_call(['python', _kindle_unpack_pathall, os.path.join(_documents, _file), _tempdir], stdout=devnull, stderr=subprocess.STDOUT)
@@ -42,6 +42,6 @@ for _file in os.listdir(_documents):
 						_thumb_file = re.search('.+id="cover_img.+href="(.+)\/(.+)".+', _opf_content)
 						if _thumb_file:
 							shutil.move(os.path.join(_tempdir, 'mobi7', _thumb_file.group(1), _thumb_file.group(2)), os.path.join(_kindle_path, 'system', 'thumbnails', 'thumbnail_' + _asin.group(1) + '_PDOC_portrait.jpg'))
-							print 'Cover copied to your device…'
+							print('Cover copied to your device…')
 			if os.path.isdir(_tempdir):
 				shutil.rmtree(_tempdir)
