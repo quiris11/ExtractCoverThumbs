@@ -12,7 +12,7 @@
 # 1. You have to download and install KindleUnpack tool and configure _kindle_unpack_path variable below.
 # 2. You also have to properly set up _kindle_path variable to path where is Your Paperwhite mounted.
 
-import os, re, shutil, subprocess, tempfile
+import sys, os, re, shutil, subprocess, tempfile
 
 ########## CONFIG VARIABLES ############
 _kindle_unpack_path = '/KindleUnpack_v62'
@@ -22,15 +22,27 @@ _kindle_path = '/Volumes/Kindle' 			# for example 'E:', '/Volumes/Kindle'
 _kindle_unpack_pathall = os.path.join(_kindle_unpack_path, 'lib', 'kindleunpack.py')
 _documents = os.path.join(_kindle_path, 'documents')
 
-for _file in os.listdir(_documents):
+try:
+	_dir_content = os.listdir(_documents)
+except:
+	sys.exit('No Kindle device found in a specified path: _kindle_path. Giving up…')
+for _file in _dir_content:
 	if _file.endswith('.azw3') or _file.endswith('.azw'):
 		print('Processing file ' + _file + '...')
-		_asin = re.search('.+_(.+?)\..+', _file)
-		if not os.path.isfile(os.path.join(_kindle_path, 'system', 'thumbnails', 'thumbnail_' + _asin.group(1) + '_PDOC_portrait.jpg')) and not os.path.isfile(os.path.join(_kindle_path, 'system', 'thumbnails', 'thumbnail_' + _asin.group(1) + '_EBOK_portrait.jpg')):
+		try:
+			_asin = re.search('.+_(.+?)\..+', _file)
+			_asin_found = _asin.group(1)	
+		except:
+			print('No ASIN found in a current file. Let me try another one…')
+			continue
+		if not os.path.isfile(os.path.join(_kindle_path, 'system', 'thumbnails', 'thumbnail_' + _asin_found + '_PDOC_portrait.jpg')) and not os.path.isfile(os.path.join(_kindle_path, 'system', 'thumbnails', 'thumbnail_' + _asin.group(1) + '_EBOK_portrait.jpg')):
 			print('No cover found…')
 			_tempdir = tempfile.mkdtemp()
 			with open(os.devnull, 'wb') as devnull:
-				subprocess.check_call(['python', _kindle_unpack_pathall, os.path.join(_documents, _file), _tempdir], stdout=devnull, stderr=subprocess.STDOUT)
+				try:
+					subprocess.check_call(['python', _kindle_unpack_pathall, os.path.join(_documents, _file), _tempdir], stdout=devnull, stderr=subprocess.STDOUT)
+				except:
+					sys.exit('No KindleUnpack Tool found in a specified path: _kindle_unpack_path. Giving up…')
 			if _file.endswith('.azw3'):
 				_opf_dir = os.path.join(_tempdir, 'mobi8', 'OEBPS')
 			else:
