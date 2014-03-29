@@ -47,7 +47,7 @@ for _file in _dir_content:
 				if _opf.endswith('.opf'):
 					with open(os.path.join(_opf_dir, _opf), 'r') as f:
 						_opf_content = f.read()
-						_thumb_file = re.search('.+id="cover_img.+href="(.+)\/(.+)".+', _opf_content)
+						_thumb_file = re.search('.+properties="cover-image".+href="(.+)\/(.+)".+', _opf_content)
 						if _thumb_file:
 							shutil.move(os.path.join(_tempdir, 'mobi7', _thumb_file.group(1), _thumb_file.group(2)), os.path.join(_kindle_path, 'system', 'thumbnails', 'thumbnail_' + _asin.group(1) + '_PDOC_portrait.jpg'))
 							print('Cover copied to your device…')
