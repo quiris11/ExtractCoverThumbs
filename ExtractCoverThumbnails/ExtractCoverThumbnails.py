@@ -10,13 +10,12 @@
 # 1. You have to properly set up _kindle_path variable to path where is Your Paperwhite mounted.
 
 import sys, os, re, shutil, subprocess, tempfile
-_kindle_unpack_path = os.path.join(os.getcwd(), 'KindleUnpack_v62')
 
 ########## CONFIG VARIABLE ############
 _kindle_path = '/Volumes/Kindle' 			# for example 'E:', '/Volumes/Kindle'
 ####### END OF CONFIG VARIABLES ########
 
-_kindle_unpack_pathall = os.path.join(_kindle_unpack_path, 'lib', 'kindleunpack.py')
+_kindle_unpack_pathall = os.path.join(os.getcwd(), 'KindleUnpack_v62', 'lib', 'kindleunpack.py')
 _documents = os.path.join(_kindle_path, 'documents')
 
 try:
