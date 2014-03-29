@@ -15,7 +15,7 @@ import sys, os, re, shutil, subprocess, tempfile
 _kindle_path = '/Volumes/Kindle' 			# for example 'E:', '/Volumes/Kindle'
 ####### END OF CONFIG VARIABLES ########
 
-_kindle_unpack_pathall = os.path.join(os.getcwd(), 'KindleUnpack_v62', 'lib', 'kindleunpack.py')
+_kindle_unpack = os.path.join(os.getcwd(), 'KindleUnpack_v62', 'lib', 'kindleunpack.py')
 _documents = os.path.join(_kindle_path, 'documents')
 
 try:
@@ -36,7 +36,7 @@ for _file in _dir_content:
 			_tempdir = tempfile.mkdtemp()
 			with open(os.devnull, 'wb') as devnull:
 				try:
-					subprocess.check_call(['python', _kindle_unpack_pathall, os.path.join(_documents, _file), _tempdir], stdout=devnull, stderr=subprocess.STDOUT)
+					subprocess.check_call(['python', _kindle_unpack, os.path.join(_documents, _file), _tempdir], stdout=devnull, stderr=subprocess.STDOUT)
 				except:
 					sys.exit('No KindleUnpack Tool found in a specified path: _kindle_unpack_path. Giving up…')
 			if _file.endswith('.azw3'):
