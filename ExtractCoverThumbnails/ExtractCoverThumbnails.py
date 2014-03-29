@@ -7,13 +7,12 @@
 # This is script extracts missing Cover Thumbnails from eBooks downloaded 
 # from Amazon Personal Documents Service and side loads them to your Kindle Paperwhite.
 # 
-# 1. You have to download and install KindleUnpack tool and configure _kindle_unpack_path variable below.
-# 2. You also have to properly set up _kindle_path variable to path where is Your Paperwhite mounted.
+# 1. You have to properly set up _kindle_path variable to path where is Your Paperwhite mounted.
 
 import sys, os, re, shutil, subprocess, tempfile
+_kindle_unpack_path = os.path.join(os.getcwd(), 'KindleUnpack_v62')
 
-########## CONFIG VARIABLES ############
-_kindle_unpack_path = '/KindleUnpack_v62'
+########## CONFIG VARIABLE ############
 _kindle_path = '/Volumes/Kindle' 			# for example 'E:', '/Volumes/Kindle'
 ####### END OF CONFIG VARIABLES ########
 
