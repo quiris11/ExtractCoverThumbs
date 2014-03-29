@@ -15,7 +15,7 @@ import sys, os, re, shutil, subprocess, tempfile
 _kindle_path = '/Volumes/Kindle' 			# for example 'E:', '/Volumes/Kindle'
 ####### END OF CONFIG VARIABLES ########
 
-_kindle_unpack = os.path.join(os.getcwd(), 'KindleUnpack_v62', 'lib', 'kindleunpack.py')
+_kindle_unpack = os.path.join(os.getcwd(), 'KindleUnpack_v64', 'lib', 'kindleunpack.py')
 _documents = os.path.join(_kindle_path, 'documents')
 
 try:

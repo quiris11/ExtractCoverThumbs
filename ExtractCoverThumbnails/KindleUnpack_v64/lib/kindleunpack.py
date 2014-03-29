@@ -74,7 +74,13 @@
 #       - fixs for file/paths that require full unicode to work properly
 #       - replace subprocess with multiprocessing to remove need for unbuffered stdout
 #  0.61 - renamed to be KindleUnpack and more unicode/utf-8 path bug fixes and other minor fixes
-#  0.62 - fix for multiprocessing on Windows, split fixes, opf improvements 
+#  0.62 - fix for multiprocessing on Windows, split fixes, opf improvements
+#  0.63 - Modified to process right to left page progression books properly.
+#       - Added some id_map_strings and RESC section processing; metadata and
+#       - spine in the RESC are integrated partly to content.opf.
+#  0.63a- Separeted K8 RESC processor to an individual file. Bug fixes. Added cover page creation.
+#  0.64 - minor bug fixes to more properly handle unicode command lines, and support for more jpeg types
+
 
 DUMP = False
 """ Set to True to dump all possible information. """
@@ -84,6 +90,12 @@ WRITE_RAW_DATA = False
 
 SPLIT_COMBO_MOBIS = False
 """ Set to True to split combination mobis into mobi7 and mobi8 pieces. """
+
+PROC_K8RESC = True
+""" Process K8 RESC section. """
+
+CREATE_COVER_PAGE = True # XXX experimental
+""" Create and insert a cover xhtml page. """
 
 EOF_RECORD = chr(0xe9) + chr(0x8e) + "\r\n"
 """ The EOF record content. """
@@ -103,6 +115,11 @@ import os
 
 import locale
 import codecs
+
+# Setting setdefaultencoding to 'utf-8' should be fine (no side effects should occur).
+#reload(sys)
+#sys.setdefaultencoding('utf-8')
+
 from utf8_utils import utf8_argv, add_cp65001_codec, utf8_str
 add_cp65001_codec()
 
@@ -121,6 +138,7 @@ from mobi_ncx import ncxExtract
 from mobi_dict import dictSupport
 from mobi_k8proc import K8Processor
 from mobi_split import mobi_split
+from mobi_k8resc import K8RESCProcessor, CoverProcessor
 
 def describe(data):
     txtans = ''
@@ -578,10 +596,15 @@ class MobiHeader:
         502 : 'last_update_time',
         503 : 'Updated_Title',
         504 : 'ASIN_(504)',
+        508 : 'Title file-as',
+        517 : 'Creator file-as',
+        522 : 'Publisher file-as',
         524 : 'Language_(524)',
         525 : 'primary-writing-mode',
+        527 : 'page-progression-direction',
         528 : 'Unknown_Logical_Value_(528)',
         529 : 'Original_Source_Description_(529)',
+        534 : 'Unknown_(534)',
         535 : 'Kindlegen_BuildRev_Number',
 
     }
@@ -606,12 +629,13 @@ class MobiHeader:
     id_map_hexstrings = {
         209 : 'Tamper Proof Keys (hex)',
         300 : 'Font Signature (hex)',
-        403 : 'Unknown',
-        405 : 'Unknown',
-        450 : 'Unknown',
-        451 : 'Unknown',
-        452 : 'Unknown',
-        453 : 'Unknown',
+        403 : 'Unknown_(403) (hex)',
+        405 : 'Unknown_(405) (hex)',
+        407 : 'Unknown_(407) (hex)',
+        450 : 'Unknown_(450) (hex)',
+        451 : 'Unknown_(451) (hex)',
+        452 : 'Unknown_(452) (hex)',
+        453 : 'Unknown_(453) (hex)',
 
     }
 
@@ -1040,6 +1064,7 @@ class MobiHeader:
 
 def process_all_mobi_headers(files, sect, mhlst, K8Boundary, k8only=False):
     imgnames = []
+    resc = None
     for mh in mhlst:
         if mh.isK8():
             sect.setsectiondescription(mh.start,"KF8 Header")
@@ -1208,16 +1233,33 @@ def process_all_mobi_headers(files, sect, mhlst, K8Boundary, k8only=False):
                 # resources only exist in K8 ebooks
                 # not sure what they are, looks like
                 # a piece of the top of the original content.opf
-                # file, so only write them out
-                # if DUMP is True
+                unknown1, unknown2, unknown3 = struct.unpack_from('>LLL',data,4)
+                data_ = data[16:]
+                m_header = re.match(r'^\w+=(\w+)\&\w+=(\d+)&\w+=(\d+)', data_)
+                resc_header = m_header.group()
+                resc_size = fromBase32(m_header.group(1))
+                resc_version = int(m_header.group(2))
+                resc_type = int(m_header.group(3))
+                resc_data = data_[m_header.end():m_header.end()+resc_size]
+                resc = [resc_version, resc_type, resc_data]
+
                 if DUMP:
-                    data = data[4:]
-                    rescname = "resc%05d.dat" % i
+                    rescname = "RESC%05d.dat" % i
                     print "    extracting resource: ", rescname
-                    outrsc = os.path.join(files.imgdir, rescname)
-                    open(pathof(outrsc), 'wb').write(data)
+                    #outrsc = os.path.join(files.imgdir, rescname)
+                    #open(pathof(outrsc), 'wb').write(data)
+                    outrsc = os.path.join(files.outdir, rescname)
+                    f = open(pathof(outrsc), 'w')
+                    f.write('unknown(hex) = {:08X}\n'.format(unknown1))
+                    f.write('unknown(hex) = {:08X}\n'.format(unknown2))
+                    f.write('unknown(hex) = {:08X}\n'.format(unknown3))
+                    f.write(resc_header + '\n')
+                    f.write(resc_data)
+                    f.close()
+
                 imgnames.append(None)
-                sect.setsectiondescription(i,"Mysterious RESC data")
+                #sect.setsectiondescription(i,"Mysterious RESC data")
+                sect.setsectiondescription(i,"K8 RESC section")
                 continue
 
             if data == EOF_RECORD:
@@ -1229,6 +1271,19 @@ def process_all_mobi_headers(files, sect, mhlst, K8Boundary, k8only=False):
             # if reach here should be an image but double check to make sure
             # Get the proper file extension
             imgtype = imghdr.what(None, data)
+
+            # imghdr only checks for JFIF or Exif JPEG files. Apparently, there are some 
+            # with only the magic JPEG bytes out there...
+            # ImageMagick handles those, so, do it too.
+            if imgtype is None and data[0:2] == b'\xFF\xD8':
+                # Get last non-null bytes
+                last = len(data)
+                while (data[last-1:last] == b'\x00'):
+                    last-=1
+                # Be extra safe, check the trailing bytes, too.
+                if data[last-2:last] == b'\xFF\xD9':
+                    imgtype = "jpeg"
+
             if imgtype is None:
                 print "Warning: Section %s does not contain a recognised resource" % i
                 imgnames.append(None)
@@ -1246,8 +1301,22 @@ def process_all_mobi_headers(files, sect, mhlst, K8Boundary, k8only=False):
                 imgnames.append(imgname)
                 sect.setsectiondescription(i,"Image {0:s}".format(imgname))
 
+        # Rename cover image to 'coverXXXXX.ext'
+        if CREATE_COVER_PAGE:
+            if 'CoverOffset' in metadata.keys():
+                i = int(metadata['CoverOffset'][0])
+                if imgnames[i] != None:
+                    old_name = imgnames[i]
+                    if not 'cover' in old_name:
+                        new_name = re.sub(r'image', 'cover', old_name)
+                        imgnames[i] = new_name
+                        oldimg = os.path.join(files.imgdir, old_name)
+                        newimg = os.path.join(files.imgdir, new_name)
+                        if os.path.exists(pathof(oldimg)):
+                            if os.path.exists(pathof(newimg)):
+                                os.remove(pathof(newimg))
+                            os.rename(pathof(oldimg), pathof(newimg))
 
-        # FIXME all of this PrintReplica code is untested!
         # Process print replica book.
         if mh.isPrintReplica() and not k8only:
             filenames = []
@@ -1339,7 +1408,52 @@ def process_all_mobi_headers(files, sect, mhlst, K8Boundary, k8only=False):
                     fname = os.path.join(files.k8oebps,dir,filename)
                     open(pathof(fname),'wb').write(flowpart)
 
-            opf = OPFProcessor(files, metadata, filenames, imgnames, ncx.isNCX, mh, usedmap, guidetext)
+            if PROC_K8RESC:
+                # Retrieve a spine (and a metadata) from RESC section.
+                # Get correspondences between itemes in a spine in RECS and ones in a skelton.
+                k8resc = K8RESCProcessor(resc)
+                n =  k8proc.getNumberOfParts()
+                for i in range(n):
+                    # Import skelnum and filename to K8RescProcessor.
+                    [skelnum, dir, filename, beg, end, aidtext] = k8proc.getPartInfo(i)
+                    index = k8resc.getSpineIndexBySkelid(skelnum)
+                    k8resc.setFilenameToSpine(index, filename)
+                #k8resc.createFilenameToSpineIndexDict()
+
+                # XXX experimental
+                if CREATE_COVER_PAGE:
+                    cover = CoverProcessor(files, metadata, imgnames)
+                    # Create a cover page if first spine item has no correspondence.
+                    createCoverPage = False
+                    index = k8resc.getSpineStartIndex()
+                    if k8resc.getSpineSkelid(index) < 0:
+                        createCoverPage = True
+                    else:
+                        filename = k8resc.getFilenameFromSpine(index)
+                        if filename != None:
+                            fname = os.path.join(files.k8oebps, dir, filename)
+                            f = open(pathof(fname), 'r')
+                            if f != None:
+                                xhtml = f.read()
+                                f.close()
+                                cover_img = cover.getImageName()
+                                if cover_img != None and not cover_img in xhtml:
+                                    k8resc.insertSpine(index, 'inserted_cover', -1, None)
+                                    k8resc.createSkelidToSpineIndexDict()
+                                    createCoverPage = True
+                    if createCoverPage:
+                        cover.writeXHTML()
+                        filename = cover.getXHTMLName()
+                        dir = os.path.relpath(files.k8text, files.k8oebps)
+                        filenames.append([dir, filename])
+                        k8resc.setFilenameToSpine(index, filename)
+                        k8resc.setSpineAttribute(index, 'linear', 'no')
+                        guidetext += cover.guide_toxml()
+
+                k8resc.createFilenameToSpineIndexDict()
+                opf = OPFProcessor(files, metadata, filenames, imgnames, ncx.isNCX, mh, usedmap, guidetext, k8resc)
+            else:
+                opf = OPFProcessor(files, metadata, filenames, imgnames, ncx.isNCX, mh, usedmap, guidetext)
 
             if obfuscate_data:
                 uuid = opf.writeOPF(True)
@@ -1512,9 +1626,9 @@ def main():
     global DUMP
     global WRITE_RAW_DATA
     global SPLIT_COMBO_MOBIS
-    print "kindleunpack v0.62"
+    print "kindleunpack v0.64"
     print "   Based on initial version Copyright © 2009 Charles M. Hannum <root@ihack.net>"
-    print "   Extensions / Improvements Copyright © 2009-2012 P. Durrant, K. Hendricks, S. Siebert, fandrieu, DiapDealer, nickredding."
+    print "   Extensions / Improvements Copyright © 2009-2014 P. Durrant, K. Hendricks, S. Siebert, fandrieu, DiapDealer, nickredding, tkeo."
     print "   This program is free software: you can redistribute it and/or modify"
     print "   it under the terms of the GNU General Public License as published by"
     print "   the Free Software Foundation, version 3."
@@ -1522,7 +1636,7 @@ def main():
     argv=utf8_argv()
     progname = os.path.basename(argv[0])
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hdrs")
+        opts, args = getopt.getopt(argv[1:], "hdrs")
     except getopt.GetoptError, err:
         print str(err)
         usage(progname)

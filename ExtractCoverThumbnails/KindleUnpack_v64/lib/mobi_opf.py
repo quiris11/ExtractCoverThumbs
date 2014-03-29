@@ -8,7 +8,7 @@ from HTMLParser import HTMLParser
 EXTRA_ENTITIES = {'"':'&quot;', "'":"&apos;"}
 
 class OPFProcessor:
-    def __init__(self, files, metadata, filenames, imgnames, isNCX, mh, usedmap, guidetext=False):
+    def __init__(self, files, metadata, filenames, imgnames, isNCX, mh, usedmap, guidetext=False, k8resc=None):
         self.files = files
         self.metadata = metadata
         self.filenames = filenames
@@ -19,11 +19,13 @@ class OPFProcessor:
         self.printReplica = mh.isPrintReplica()
         self.guidetext = guidetext
         self.used = usedmap
+        self.k8resc = k8resc
         self.covername = None
         self.h = HTMLParser()
         # Create a unique urn uuid
         self.BookId = str(uuid.uuid4())
         self.starting_offset = None
+        self.page_progression_direction = None
 
     def escapeit(self, sval, EXTRAS=None):
         # note, xmlescape and unescape do not work with utf-8 bytestrings
@@ -39,6 +41,7 @@ class OPFProcessor:
         # write out the metadata as an OEB 1.0 OPF file
         print "Write opf"
         metadata = self.metadata
+        k8resc = self.k8resc
 
         META_TAGS = ['Drm Server Id', 'Drm Commerce Id', 'Drm Ebookbase Book Id', 'ASIN', 'ThumbOffset', 'Fake Cover',
                                                 'Creator Software', 'Creator Major Version', 'Creator Minor Version', 'Creator Build Number',
@@ -113,13 +116,36 @@ class OPFProcessor:
         handleTag(data, metadata, 'Rights', 'dc:rights')
         handleTag(data, metadata, 'DictInLanguage', 'DictionaryInLanguage')
         handleTag(data, metadata, 'DictOutLanguage', 'DictionaryOutLanguage')
+
+       # page-progression-direction
+        ppd_key = 'page-progression-direction'
+        self.page_progression_direction = metadata.pop(ppd_key, [None])[0]
+        pwm_key = 'primary-writing-mode'
+        pwm_value = metadata.pop(pwm_key, [None])[0]
+        if pwm_value != None:
+            data.append('<meta name="'+pwm_key+'" content="'+self.escapeit(pwm_value, EXTRA_ENTITIES)+'" />\n')
+            if 'rl' in pwm_value:
+                self.page_progression_direction = 'rtl'
+
+        # Append metadata in RESC section.
+        cover_id = None
+        if k8resc != None:
+            cover_id = k8resc.cover_id
+            resc_metadata_ = k8resc.metadata_toxml()
+            if len(resc_metadata_) > 0:
+                data.append('<!-- Begin imported from RESC section -->\n')
+                data += resc_metadata_
+                data.append('<!-- End imported from RESC section -->\n')
+
         if 'CoverOffset' in metadata.keys():
             imageNumber = int(metadata['CoverOffset'][0])
             self.covername = self.imgnames[imageNumber]
             if self.covername is None:
                 print "Error: Cover image %s was not recognized as a valid image" % imageNumber
             else:
-                data.append('<meta name="cover" content="cover_img" />\n')
+                if cover_id == None:
+                    cover_id = 'cover_img'
+                    data.append('<meta name="cover" content="' + cover_id + '" />\n')
                 self.used[self.covername] = 'used'
             del metadata['CoverOffset']
         handleMetaPairs(data, metadata, 'Codec', 'output encoding')
@@ -193,6 +219,14 @@ class OPFProcessor:
             ext = ext.lower()
             media = media_map.get(ext)
             ref = "item%d" % idcnt
+            if k8resc != None and k8resc.hasSpine():
+                index = k8resc.getSpineIndexByFilename(fname)
+                if index != None:
+                    itemid = k8resc.getSpineIdref(index)
+                    #ref += '_' + itemid
+                    ref = itemid
+                    k8resc.setSpineIdref(index, ref)
+
             if dir != '':
                 data.append('<item id="' + ref + '" media-type="' + media + '" href="' + dir + '/' + fname +'" />\n')
             else:
@@ -200,6 +234,7 @@ class OPFProcessor:
             if ext in ['.xhtml', '.html']:
                 spinerefs.append(ref)
             idcnt += 1
+
         for fname in self.imgnames:
             if fname != None:
                 if self.used.get(fname,'not used') == 'not used':
@@ -208,9 +243,11 @@ class OPFProcessor:
                 ext = ext.lower()
                 media = media_map.get(ext,ext[1:])
                 if fname == self.covername:
-                    ref = 'cover_img'
+                    ref = cover_id
+                    ref += '" properties="cover-image'
                 else:
                     ref = "item%d" % idcnt
+
                 if ext == '.ttf' or ext == '.otf':
                     data.append('<item id="' + ref + '" media-type="' + media + '" href="Fonts/' + fname +'" />\n')
                 else:
@@ -222,16 +259,26 @@ class OPFProcessor:
                 ncxname = 'toc.ncx'
             else:
                 ncxname = self.files.getInputFileBasename() + '.ncx'
-            data += '<item id="ncx" media-type="application/x-dtbncx+xml" href="' + ncxname +'"></item>\n'
+            data.append('<item id="ncx" media-type="application/x-dtbncx+xml" href="' + ncxname +'"></item>\n')
         data.append('</manifest>\n')
+
         # build spine
+        spine_start_tag = '<spine'
+        if self.page_progression_direction != None:
+            spine_start_tag += ' page-progression-direction="{:s}"'.format(self.page_progression_direction)
         if self.isNCX:
-            data.append('<spine toc="ncx">\n')
+            spine_start_tag += ' toc="ncx"'
+        spine_start_tag += '>\n'
+        data.append(spine_start_tag)
+        if k8resc != None and k8resc.hasSpine():
+            spine_ = k8resc.spine_toxml()
+            data += spine_
         else:
-            data.append('<spine>\n')
-        for entry in spinerefs:
-            data.append('<itemref idref="' + entry + '"/>\n')
-        data.append('</spine>\n<tours>\n</tours>\n')
+            for entry in spinerefs:
+                data.append('<itemref idref="' + entry + '"/>\n')
+        data.append('</spine>\n')
+
+        data.append('<tours>\n</tours>\n')
 
         if not self.printReplica:
             metaguidetext = ''
