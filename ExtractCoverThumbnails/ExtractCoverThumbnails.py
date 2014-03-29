@@ -1,10 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# By Robert Blaut http://blog.blaut.biz
-# This script is licensed under 
-# a Creative Commons Attribution 3.0 Unported License (CC BY 3.0)
-# http://creativecommons.org/licenses/by/3.0/
+# This file is part of pyBookTools, licensed under GNU Affero GPLv3 or later.
+# Copyright © Robert Błaut. See NOTICE for more information.
 #
 # This is script extracts missing Cover Thumbnails from eBooks downloaded 
 # from Amazon Personal Documents Service and side loads them to your Kindle Paperwhite.
