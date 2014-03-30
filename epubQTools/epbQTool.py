@@ -5,21 +5,27 @@
 # Copyright © Robert Błaut. See NOTICE for more information.
 #
 
-import os
-import zipfile
 import argparse
-import subprocess
+import os
+import re
 import tempfile
 import shutil
-import re
+import subprocess
+import sys
+import zipfile
 from lxml import etree
+
+sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
 from hyphenator import Hyphenator
 from epubqcheck import QCheck
 
 _my_language = 'pl'
 _hyphen_mark = u'\u00AD'
-_hyph = Hyphenator(os.path.join(os.getcwd(), 'resources', 'dictionaries', 'hyph_pl_PL.dic'))
+_hyph = Hyphenator(os.path.join(os.path.dirname(__file__), 'resources',
+                   'dictionaries', 'hyph_pl_PL.dic'))
 
+DTD = ('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" '
+       '"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">')
 OPFNS = {'opf': 'http://www.idpf.org/2007/opf'}
 XHTMLNS = {'xhtml': 'http://www.w3.org/1999/xhtml'}
 DCNS = {'dc': 'http://purl.org/dc/elements/1.1/'}
@@ -28,10 +34,14 @@ SVGNS = {'svg': 'http://www.w3.org/2000/svg'}
 
 parser = argparse.ArgumentParser()
 parser.add_argument("directory", help="Directory with EPUB files stored")
-parser.add_argument("-m", "--mod", help="validate only _moh.epub files", action="store_true")
-parser.add_argument("-v", "--validate", help="validate files with epubchecker", action="store_true")
-parser.add_argument("-q", "--qcheck", help="validate files with epubqcheck", action="store_true")
-parser.add_argument("-k", "--kindlegen", help="convert hyphenated files to Mobi with kindlegen", action="store_true")
+parser.add_argument("-m", "--mod", help="validate only _moh.epub files",
+                    action="store_true")
+parser.add_argument("-v", "--validate", help="validate files with epubchecker",
+                    action="store_true")
+parser.add_argument("-q", "--qcheck", help="validate files with epubqcheck",
+                    action="store_true")
+parser.add_argument("-k", "--kindlegen", help="convert hyphenated files to"
+                    " Mobi with kindlegen", action="store_true")
 args = parser.parse_args()
 
 _documents = args.directory
@@ -55,7 +65,8 @@ def pack_epub(output_filename, source_dir):
             for file in files:
                 filename = os.path.join(root, file)
                 if os.path.isfile(filename):
-                    arcname = os.path.join(os.path.relpath(root, relroot), file)
+                    arcname = os.path.join(os.path.relpath(root, relroot),
+                                           file)
                     zip.write(filename, arcname)
 
 
@@ -70,7 +81,8 @@ def find_xhtml_files(epubzipfile, tempdir):
             if singlefile.find(os.sep) == -1:
                 rootepubdir = tempdir
             else:
-                rootepubdir = os.path.join(tempdir, singlefile.split(os.sep)[0])
+                rootepubdir = os.path.join(tempdir,
+                                           singlefile.split(os.sep)[0])
             opftree = etree.fromstring(epubzipfile.read(singlefile))
             try:
                 xhtml_items = etree.XPath(
@@ -82,7 +94,8 @@ def find_xhtml_files(epubzipfile, tempdir):
             xhtml_files = []
             xhtml_file_paths = []
             for xhtml_item in xhtml_items:
-                xhtml_files.append(os.path.join(rootepubdir, xhtml_item.get('href')))
+                xhtml_files.append(os.path.join(rootepubdir,
+                                   xhtml_item.get('href')))
                 xhtml_file_paths.append(xhtml_item.get('href'))
             opf_file = os.path.join(tempdir, singlefile)
             return xhtml_files, xhtml_file_paths, opf_file, rootepubdir
@@ -102,8 +115,9 @@ def hyphenate_and_fix_conjunctions(source_file, hyph, hyphen_mark):
         wlist = re.compile(r'\w+|[^\w]', re.UNICODE).findall(t)
         for w in wlist:
             newt += hyph.inserted(w, hyphen_mark)
-        newt = re.sub(r'(?<=\s\w)\s+', u'\u00A0', newt)  # fix for hanging single conjunctions
-        # print newt
+
+        # fix for hanging single conjunctions
+        newt = re.sub(r'(?<=\s\w)\s+', u'\u00A0', newt)
         if t.is_text:
             parent.text = newt
         elif t.is_tail:
@@ -127,11 +141,13 @@ def fix_styles(source_file):
 
 def fix_html_toc(opf_file, tempdir, xhtml_files, xhtml_file_paths):
     soup = etree.parse(opf_file)
-    reftocs = etree.XPath('//opf:reference[@type="toc"]', namespaces=OPFNS)(soup)
+    reftocs = etree.XPath('//opf:reference[@type="toc"]',
+                          namespaces=OPFNS)(soup)
     if len(reftocs) == 0:
         html_toc = None
         for xhtml_file in xhtml_files:
-            xhtmltree = etree.parse(xhtml_file, parser=etree.XMLParser(recover=True))
+            xhtmltree = etree.parse(xhtml_file,
+                                    parser=etree.XMLParser(recover=True))
             alltexts = etree.XPath('//text()', namespaces=XHTMLNS)(xhtmltree)
             alltext = ' '.join(alltexts)
             if alltext.find(u'Spis treści') != -1:
@@ -142,15 +158,18 @@ def fix_html_toc(opf_file, tempdir, xhtml_files, xhtml_file_paths):
                 if xhtml_file_path.find(os.path.basename(html_toc)) != -1:
                     html_toc = xhtml_file_path
                     break
-            newtocreference = etree.Element('reference', title='TOC', type="toc", href=html_toc)
-            soup.xpath('//opf:guide', namespaces=OPFNS)[0].insert(0, newtocreference)
+            newtocreference = etree.Element('reference', title='TOC',
+                                            type="toc", href=html_toc)
+            soup.xpath('//opf:guide',
+                       namespaces=OPFNS)[0].insert(0, newtocreference)
         else:
             parser = etree.XMLParser(remove_blank_text=True)
             transform = etree.XSLT(etree.parse(os.path.join(
-            	os.getcwd(), 'resources', 'ncx2end-0.2.xsl'
+                os.path.dirname(__file__), 'resources', 'ncx2end-0.2.xsl'
             )))
             toc_ncx_file = etree.XPath(
-            	'//opf:item[@media-type="application/x-dtbncx+xml"]', namespaces=OPFNS
+                '//opf:item[@media-type="application/x-dtbncx+xml"]',
+                namespaces=OPFNS
             )(soup)[0].get('href')
             ncxtree = etree.parse(os.path.join(tempdir, toc_ncx_file), parser)
             result = transform(ncxtree)
@@ -160,20 +179,33 @@ def fix_html_toc(opf_file, tempdir, xhtml_files, xhtml_file_paths):
                     pretty_print=True,
                     xml_declaration=True,
                     encoding="utf-8",
-                    doctype='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" ' +
-                            '"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">'
+                    doctype=DTD
                 ))
-            newtocmanifest = etree.Element('{http://www.idpf.org/2007/opf}item', attrib={'media-type': 'application/xhtml+xml', 'href': 'toc-quiris.xhtml', 'id': 'toc-quiris'})
-            soup.xpath('//opf:manifest', namespaces=OPFNS)[0].insert(0, newtocmanifest)
-            newtocspine = etree.Element('{http://www.idpf.org/2007/opf}itemref', idref='toc-quiris')
+            newtocmanifest = etree.Element(
+                '{http://www.idpf.org/2007/opf}item',
+                attrib={'media-type': 'application/xhtml+xml', 'href': 'toc-quiris.xhtml', 'id': 'toc-quiris'}
+            )
+            soup.xpath('//opf:manifest',
+                       namespaces=OPFNS)[0].insert(0, newtocmanifest)
+            newtocspine = etree.Element(
+                '{http://www.idpf.org/2007/opf}itemref',
+                idref='toc-quiris'
+            )
             soup.xpath('//opf:spine', namespaces=OPFNS)[0].append(newtocspine)
-            newtocreference = etree.Element('{http://www.idpf.org/2007/opf}reference', title='TOC', type="toc", href='toc-quiris.xhtml')
+            newtocreference = etree.Element(
+                '{http://www.idpf.org/2007/opf}reference',
+                title='TOC',
+                type="toc",
+                href='toc-quiris.xhtml'
+            )
             try:
-                soup.xpath('//opf:guide', namespaces=OPFNS)[0].insert(0, newtocreference)
+                soup.xpath('//opf:guide',
+                           namespaces=OPFNS)[0].insert(0, newtocreference)
             except IndexError:
                 newguide = etree.Element('{http://www.idpf.org/2007/opf}guide')
                 newguide.append(newtocreference)
-                soup.xpath('//opf:package', namespaces=OPFNS)[0].append(newguide)
+                soup.xpath('//opf:package',
+                           namespaces=OPFNS)[0].append(newguide)
 
     with open(opf_file, "w") as f:
         f.write(etree.tostring(
@@ -184,30 +216,34 @@ def fix_html_toc(opf_file, tempdir, xhtml_files, xhtml_file_paths):
         ))
 
 
-def fix_various_opf_problems(source_file, tempdir, xhtml_files, xhtml_file_paths):
+def fix_various_opf_problems(source_file, tempdir, xhtml_files,
+                             xhtml_file_paths):
     soup = etree.parse(source_file)
 
-    #remove multiple dc:language
+    # remove multiple dc:language
     lang_counter = 0
     for lang in soup.xpath("//dc:language", namespaces=DCNS):
         lang_counter = lang_counter + 1
         if lang_counter > 1:
             lang.getparent().remove(lang)
 
-    #set dc:language to my language
+    # set dc:language to my language
     for lang in soup.xpath("//dc:language", namespaces=DCNS):
         if lang.text != _my_language:
             lang.text = _my_language
 
-    #add missing dc:language
+    # add missing dc:language
     if len(soup.xpath("//dc:language", namespaces=DCNS)) == 0:
         for metadata in soup.xpath("//opf:metadata", namespaces=OPFNS):
-            newlang = etree.Element('{http://purl.org/dc/elements/1.1/}language')
+            newlang = etree.Element(
+                '{http://purl.org/dc/elements/1.1/}language'
+            )
             newlang.text = _my_language
             metadata.insert(0, newlang)
 
-    #add missing meta cover
-    metacovers = etree.XPath('//opf:meta[@name="cover"]', namespaces=OPFNS)(soup)
+    # add missing meta cover
+    metacovers = etree.XPath('//opf:meta[@name="cover"]',
+                             namespaces=OPFNS)(soup)
 #    refcovers = etree.XPath('//opf:reference[@type="cover"]', namespaces=OPFNS)(soup)
     if len(metacovers) == 1:
         itemcovers = etree.XPath('//opf:item[@id="' + metacovers[0].get('content') + '"]', namespaces=OPFNS)(soup)
@@ -372,10 +408,10 @@ else:
                             pretty_print=True,
                             xml_declaration=True,
                             encoding="utf-8",
-                            doctype='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" ' +
-                            '"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">')
+                            doctype=DTD)
                         )
                 _newfile = os.path.splitext(_file)
-                pack_epub(os.path.join(root, _newfile[0] + '_moh.epub'), _tempdir)
+                pack_epub(os.path.join(root, _newfile[0] + '_moh.epub'),
+                          _tempdir)
                 clean_temp(_tempdir)
                 print('Done…')
