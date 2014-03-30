@@ -8,10 +8,8 @@
 # from Amazon Personal Documents Service and side loads them
 # to your Kindle Paperwhite.
 #
-# 1. You have to properly set up _kindle_path variable to path
-#    where is Your Paperwhite mounted.
-#
 
+import argparse
 import sys
 import os
 import re
@@ -19,10 +17,12 @@ import shutil
 import subprocess
 import tempfile
 
-########## CONFIG VARIABLE ############
-_kindle_path = '/Volumes/Kindle'  # for example 'E:', '/Volumes/Kindle'
-####### END OF CONFIG VARIABLES ########
+parser = argparse.ArgumentParser()
+parser.add_argument("kindle_directory", help="directory where is a Kindle"
+                    " Paperwhite mounted")
+args = parser.parse_args()
 
+_kindle_path = args.kindle_directory
 _kindle_unpack = os.path.join(os.getcwd(), 'KindleUnpack_v64',
                               'lib', 'kindleunpack.py')
 _documents = os.path.join(_kindle_path, 'documents')
@@ -30,8 +30,8 @@ _documents = os.path.join(_kindle_path, 'documents')
 try:
     _dir_content = os.listdir(_documents)
 except:
-    sys.exit('No Kindle device found in a specified path'
-             ': _kindle_path. Giving up…')
+    sys.exit('No Kindle device found in a specified directory'
+             ': ' + _kindle_path)
 for _file in _dir_content:
     if _file.endswith('.azw3') or _file.endswith('.azw'):
         print('Processing file ' + _file + '...')
