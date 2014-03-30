@@ -17,7 +17,8 @@ def QCheck(_documents, _moded, _validator):
     DCNS = {'dc': 'http://purl.org/dc/elements/1.1/'}
     NCXNS = {'ncx': 'http://www.daisy.org/z3986/2005/ncx/'}
     _epubchecker_path = os.path.join(
-    	os.getcwd(), 'resources', 'epubcheck-3.0.1', 'epubcheck-3.0.1.jar'
+        os.path.dirname(__file__), os.pardir, 'resources',
+    	'epubcheck-3.0.1', 'epubcheck-3.0.1.jar'
     )
 
     if _moded:
