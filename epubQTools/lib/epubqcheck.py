@@ -5,6 +5,7 @@
 # Copyright © Robert Błaut. See NOTICE for more information.
 #
 
+
 def QCheck(_documents, _moded, _validator):
     import zipfile
     import subprocess
@@ -18,7 +19,7 @@ def QCheck(_documents, _moded, _validator):
     NCXNS = {'ncx': 'http://www.daisy.org/z3986/2005/ncx/'}
     _epubchecker_path = os.path.join(
         os.path.dirname(__file__), os.pardir, 'resources',
-    	'epubcheck-3.0.1', 'epubcheck-3.0.1.jar'
+        'epubcheck-3.0.1', 'epubcheck-3.0.1.jar'
     )
 
     if _moded:
