@@ -14,8 +14,11 @@ import sys
 import os
 import re
 import shutil
-import subprocess
 import tempfile
+
+sys.path.append(os.path.join(os.path.dirname(__file__), 'KindleUnpack_v64',
+                'lib'))
+import kindleunpack
 
 parser = argparse.ArgumentParser()
 parser.add_argument("kindle_directory", help="directory where is a Kindle"
@@ -51,13 +54,8 @@ for _file in _dir_content:
             print('No cover found…')
             _tempdir = tempfile.mkdtemp()
             with open(os.devnull, 'wb') as devnull:
-                try:
-                    subprocess.check_call([
-                        'python', _kindle_unpack,
-                        os.path.join(_documents, _file), _tempdir
-                    ], stdout=devnull, stderr=subprocess.STDOUT)
-                except:
-                    sys.exit('No KindleUnpack Tool found. Giving up…')
+                kindleunpack.unpackBook(os.path.join(_documents, _file),
+                                            _tempdir)
             if _file.endswith('.azw3'):
                 _opf_dir = os.path.join(_tempdir, 'mobi8', 'OEBPS')
             else:
