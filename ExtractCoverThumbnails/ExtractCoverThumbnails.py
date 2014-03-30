@@ -30,6 +30,12 @@ _kindle_unpack = os.path.join(os.getcwd(), 'KindleUnpack_v64',
                               'lib', 'kindleunpack.py')
 _documents = os.path.join(_kindle_path, 'documents')
 
+
+class NullDevice():
+    def write(self, s):
+        pass
+
+
 try:
     _dir_content = os.listdir(_documents)
 except:
@@ -37,12 +43,13 @@ except:
              ': ' + _kindle_path)
 for _file in _dir_content:
     if _file.endswith('.azw3') or _file.endswith('.azw'):
+        print('')
         print('Processing file ' + _file + '...')
         try:
             _asin = re.search('.+_(.+?)\..+', _file)
             _asin_found = _asin.group(1)
         except:
-            print('No ASIN found in a current file. Let me try another one…')
+            print('No ASIN found in a current file. Skipping…')
             continue
         if not os.path.isfile(os.path.join(
             _kindle_path, 'system', 'thumbnails',
@@ -51,11 +58,14 @@ for _file in _dir_content:
             _kindle_path, 'system', 'thumbnails',
             'thumbnail_' + _asin.group(1) + '_EBOK_portrait.jpg'
         )):
-            print('No cover found…')
+            print("No cover found for currect file. Trying to fix it…")
             _tempdir = tempfile.mkdtemp()
+            original_stdout = sys.stdout  # keep a reference to STDOUT
+            sys.stdout = NullDevice()  # redirect the real STDOUT
             with open(os.devnull, 'wb') as devnull:
                 kindleunpack.unpackBook(os.path.join(_documents, _file),
-                                            _tempdir)
+                                        _tempdir)
+            sys.stdout = original_stdout  # turn STDOUT back on
             if _file.endswith('.azw3'):
                 _opf_dir = os.path.join(_tempdir, 'mobi8', 'OEBPS')
             else:
@@ -78,6 +88,10 @@ for _file in _dir_content:
                                     '_portrait.jpg'
                                 )
                             )
-                            print('Cover copied to your device…')
+                            print('Cover thumbnail copied to your device…')
+                        else:
+                            print('Cover image not found. Skipping…')
             if os.path.isdir(_tempdir):
                 shutil.rmtree(_tempdir)
+        else:
+            print('Cover thumbnail for current file exists. Skipping…')
