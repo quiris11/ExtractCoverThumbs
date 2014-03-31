@@ -38,6 +38,9 @@ parser.add_argument("-m", "--mod", help="validate only _moh.epub files",
                     action="store_true")
 parser.add_argument("-v", "--validate", help="validate files with epubchecker",
                     action="store_true")
+parser.add_argument("-f", "--force",
+                    help="force overwrite previously generated files",
+                    action="store_true")
 parser.add_argument("-q", "--qcheck", help="validate files with epubqcheck",
                     action="store_true")
 parser.add_argument("-k", "--kindlegen", help="convert hyphenated files to"
@@ -364,6 +367,16 @@ else:
     for root, dirs, files in os.walk(_documents):
         for _file in files:
             if _file.endswith('.epub') and not _file.endswith('_moh.epub') and not _file.endswith('_org.epub'):
+                _newfile = os.path.splitext(_file)[0] + '_moh.epub'
+
+                # if not forced skip previously generated files
+                if not args.force:
+                    if os.path.isfile(os.path.join(root, _newfile)):
+                        print(
+                            'Skipping previously generated file: ' + _newfile
+                        )
+                        continue
+
                 print('')
                 print('Working on: ' +
                       _file.decode(sys.getfilesystemencoding()))
@@ -422,8 +435,7 @@ else:
                             encoding="utf-8",
                             doctype=DTD)
                         )
-                _newfile = os.path.splitext(_file)
-                pack_epub(os.path.join(root, _newfile[0] + '_moh.epub'),
+                pack_epub(os.path.join(root, _newfile),
                           _tempdir)
                 clean_temp(_tempdir)
                 print('Done...')
