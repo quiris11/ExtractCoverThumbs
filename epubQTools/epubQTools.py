@@ -332,29 +332,30 @@ def fix_ncx_dtd_uid(source_file, tempdir):
         metadtd = etree.XPath('//ncx:meta[@name="dtb:uid"]', namespaces=NCXNS)(ncxtree)[0]
     if metadtd.get('content') != dc_identifier:
         metadtd.set('content', dc_identifier)
-    with open(os.path.join(tempdir, ncxfile), "w") as f:
+    with open(os.path.join(tempdir, ncxfile), 'w') as f:
         f.write(etree.tostring(ncxtree.getroot(), pretty_print=True, xml_declaration=True, encoding='utf-8'))
 
 if args.qcheck:
     QCheck(_documents, args.mod, args.validate)
 elif args.kindlegen:
     for root, dirs, files in os.walk(_documents):
+        verbose = False
+        if verbose:
+            kwargs = {}
+        else:
+            devnull = open(os.devnull, 'w')
+            kwargs = {'stdout': devnull, 'stderr': devnull}
         for _file in files:
             if _file.endswith('_moh.epub'):
+                print('')
+                print('Kindlegen: Converting file: ' +
+                      _file.decode(sys.getfilesystemencoding()))
                 try:
-                    print('')
-                    print('Kindlegen: Converting file: ' +
-                          _file.decode(sys.getfilesystemencoding()))
-                    p1 = subprocess.Popen(['kindlegen', '-c2', os.path.join(root, _file)], stdout=subprocess.PIPE)
-                    p2 = subprocess.Popen(['egrep', '-wi', 'warning|error|errors'], stdin=p1.stdout, stdout=subprocess.PIPE)
-                    p1.stdout.close()
-                    print(p2.communicate()[0])
-                except OSError, e:
-                    if e.errno == 2:
-                        print('Problem! Kindlegen tool not found '
-                              'or other problem during conversion. '
-                              'Giving up...')
-                        break
+                    subprocess.check_call(['kindlegen', '-c0',
+                                          os.path.join(root, _file)],
+                                          **kwargs)
+                except:
+                    print('Mobi build with warnings...')
 
 else:
     for root, dirs, files in os.walk(_documents):
@@ -365,7 +366,7 @@ else:
                       _file.decode(sys.getfilesystemencoding()))
                 _epubzipfile, _tempdir = unpack_epub(os.path.join(root, _file))
 
-                #remove obsolete calibre_bookmarks.txt
+                # remove obsolete calibre_bookmarks.txt
                 try:
                     os.remove(os.path.join(
                         _tempdir, 'META-INF', 'calibre_bookmarks.txt'
