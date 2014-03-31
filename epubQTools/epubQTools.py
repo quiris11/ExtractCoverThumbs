@@ -90,7 +90,7 @@ def find_xhtml_files(epubzipfile, tempdir):
                     namespaces=OPFNS
                 )(opftree)
             except:
-                print 'XHTML files not found...'
+                print('XHTML files not found...')
             xhtml_files = []
             xhtml_file_paths = []
             for xhtml_item in xhtml_items:
@@ -108,7 +108,7 @@ def hyphenate_and_fix_conjunctions(source_file, hyph, hyphen_mark):
             namespaces=XHTMLNS
         )(source_file)
     except:
-        print 'No texts found...'
+        print('No texts found...')
     for t in texts:
         parent = t.getparent()
         newt = ''
@@ -132,7 +132,7 @@ def fix_styles(source_file):
             namespaces=XHTMLNS
         )(source_file)
     except:
-        print 'No links found...'
+        print('No links found...')
     for link in links:
         if link.get('type') is None:
             link.set('type', 'text/css')
@@ -341,18 +341,28 @@ elif args.kindlegen:
     for root, dirs, files in os.walk(_documents):
         for _file in files:
             if _file.endswith('_moh.epub'):
-                print('')
-                print('Kindlegen: Converting file: ' + _file)
-                p1 = subprocess.Popen(['kindlegen', '-c2', os.path.join(root, _file)], stdout=subprocess.PIPE)
-                p2 = subprocess.Popen(['egrep', '-wi', 'warning|error|errors'], stdin=p1.stdout, stdout=subprocess.PIPE)
-                p1.stdout.close()
-                print p2.communicate()[0]
+                try:
+                    print('')
+                    print('Kindlegen: Converting file: ' +
+                          _file.decode(sys.getfilesystemencoding()))
+                    p1 = subprocess.Popen(['kindlegen', '-c2', os.path.join(root, _file)], stdout=subprocess.PIPE)
+                    p2 = subprocess.Popen(['egrep', '-wi', 'warning|error|errors'], stdin=p1.stdout, stdout=subprocess.PIPE)
+                    p1.stdout.close()
+                    print(p2.communicate()[0])
+                except OSError, e:
+                    if e.errno == 2:
+                        print('Problem! Kindlegen tool not found '
+                              'or other problem during conversion. '
+                              'Giving up...')
+                        break
+
 else:
     for root, dirs, files in os.walk(_documents):
         for _file in files:
             if _file.endswith('.epub') and not _file.endswith('_moh.epub') and not _file.endswith('_org.epub'):
                 print('')
-                print('Working on ' + _file)
+                print('Working on: ' +
+                      _file.decode(sys.getfilesystemencoding()))
                 _epubzipfile, _tempdir = unpack_epub(os.path.join(root, _file))
 
                 #remove obsolete calibre_bookmarks.txt
@@ -376,7 +386,6 @@ else:
                         c = content_file.read()
                         c = c.replace('&shy;', '')
                         c = c.replace('&nbsp;', ' ')
-                        #print nc
                     _xhtmltree = etree.fromstring(
                         c, parser=etree.XMLParser(recover=False)
                     )
@@ -384,9 +393,8 @@ else:
                         _xhtmltree, _hyph, _hyphen_mark
                     )
                     _xhtmltree = fix_styles(_xhtmltree)
-                    #if _single_xhtml.find('section004.xhtml') != -1:
-                    #    print etree.tostring(_xhtmltree)
-                    #remove watermarks
+
+                    # remove watermarks
                     _wmarks = etree.XPath(
                         '//xhtml:span[starts-with(text(), "==")]',
                         namespaces=XHTMLNS
@@ -394,7 +402,7 @@ else:
                     for wm in _wmarks:
                         wm.getparent().remove(wm)
 
-                    #remove meta charsets
+                    # remove meta charsets
                     _metacharsets = etree.XPath(
                         '//xhtml:meta[@charset="utf-8"]',
                         namespaces=XHTMLNS
