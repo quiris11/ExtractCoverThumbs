@@ -350,12 +350,15 @@ elif args.kindlegen:
                 print('')
                 print('Kindlegen: Converting file: ' +
                       _file.decode(sys.getfilesystemencoding()))
-                try:
-                    subprocess.check_call(['kindlegen', '-c0',
+                retcode = subprocess.call(['kindlegen', '-c0',
                                           os.path.join(root, _file)],
                                           **kwargs)
-                except:
-                    print('Mobi build with warnings...')
+                if retcode == 1:
+                    print('MOBI file built with WARNINGS!')
+                elif retcode == 2:
+                    print('ERROR! Building MOBI file process aborted!')
+                elif retcode == 0:
+                    print('MOBI file built successfully.')
 
 else:
     for root, dirs, files in os.walk(_documents):
