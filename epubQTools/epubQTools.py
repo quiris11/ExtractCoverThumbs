@@ -186,7 +186,8 @@ def fix_html_toc(opf_file, tempdir, xhtml_files, xhtml_file_paths):
                 ))
             newtocmanifest = etree.Element(
                 '{http://www.idpf.org/2007/opf}item',
-                attrib={'media-type': 'application/xhtml+xml', 'href': 'toc-quiris.xhtml', 'id': 'toc-quiris'}
+                attrib={'media-type': 'application/xhtml+xml',
+                        'href': 'toc-quiris.xhtml', 'id': 'toc-quiris'}
             )
             soup.xpath('//opf:manifest',
                        namespaces=OPFNS)[0].insert(0, newtocmanifest)
@@ -247,9 +248,13 @@ def fix_various_opf_problems(source_file, tempdir, xhtml_files,
     # add missing meta cover
     metacovers = etree.XPath('//opf:meta[@name="cover"]',
                              namespaces=OPFNS)(soup)
-#    refcovers = etree.XPath('//opf:reference[@type="cover"]', namespaces=OPFNS)(soup)
+#    refcovers = etree.XPath('//opf:reference[@type="cover"]',
+#                            namespaces=OPFNS)(soup)
     if len(metacovers) == 1:
-        itemcovers = etree.XPath('//opf:item[@id="' + metacovers[0].get('content') + '"]', namespaces=OPFNS)(soup)
+        itemcovers = etree.XPath(
+            '//opf:item[@id="' + metacovers[0].get('content') + '"]',
+            namespaces=OPFNS
+        )(soup)
 
 # problem with different pictures for meta cover and for reference cover
 #         if len(refcovers) == 0:
@@ -257,56 +262,80 @@ def fix_various_opf_problems(source_file, tempdir, xhtml_files,
 #             print itemcoverhref
 #             cover_file = None
 #             for xhtml_file in xhtml_files:
-#                 xhtmltree = etree.parse(xhtml_file, parser=etree.XMLParser(recover=True))
-#                 allimgs = etree.XPath('//xhtml:img', namespaces=XHTMLNS)(xhtmltree)
+#                 xhtmltree = etree.parse(xhtml_file,
+#                                         parser=etree.XMLParser(recover=True))
+#                 allimgs = etree.XPath('//xhtml:img',
+#                                       namespaces=XHTMLNS)(xhtmltree)
 #                 for img in allimgs:
 #                     if img.get('src').find(itemcoverhref) != -1:
 #                         cover_file = xhtml_file
 #                         break
-#                 allsvgimgs = etree.XPath('//svg:image', namespaces=SVGNS)(xhtmltree)
+#                 allsvgimgs = etree.XPath('//svg:image',
+#                                          namespaces=SVGNS)(xhtmltree)
 #                 for svgimg in allsvgimgs:
 #                     if svgimg.get('{http://www.w3.org/1999/xlink}href').find(itemcoverhref) != -1:
 #                         cover_file = xhtml_file
 #                         break
 #             if cover_file is not None:
 #                 for xhtml_file_path in xhtml_file_paths:
-#                     if xhtml_file_path.find(os.path.basename(cover_file)) != -1:
+#                     if xhtml_file_path.find(
+#                            os.path.basename(cover_file)
+#                        ) != -1:
 #                         cover_file = xhtml_file_path
 #                         break
 #                 newcoverreference = etree.Element('reference', title='Cover', type="cover",   href=cover_file)
-#                 soup.xpath('//opf:guide', namespaces=OPFNS)[0].insert(0, newcoverreference)
+#                 soup.xpath('//opf:guide',
+#                            namespaces=OPFNS)[0].insert(0, newcoverreference)
     else:
         itemcovers = []
     if len(metacovers) == 0 or len(itemcovers) == 0:
-        refcovers = etree.XPath('//opf:reference[@type="cover"]', namespaces=OPFNS)(soup)
+        refcovers = etree.XPath('//opf:reference[@type="cover"]',
+                                namespaces=OPFNS)(soup)
         cover_image = None
         if len(refcovers) == 1:
-            coversoup = etree.parse(os.path.join(tempdir, refcovers[0].get('href')), parser=etree.XMLParser(recover=True))
+            coversoup = etree.parse(
+                os.path.join(tempdir, refcovers[0].get('href')),
+                parser=etree.XMLParser(recover=True)
+            )
             if etree.tostring(coversoup) is not None:
-                imgs = etree.XPath('//xhtml:img', namespaces=XHTMLNS)(coversoup)
+                imgs = etree.XPath('//xhtml:img',
+                                   namespaces=XHTMLNS)(coversoup)
                 if len(imgs) == 1:
                     cover_image = imgs[0].get('src')
-                images = etree.XPath('//svg:image', namespaces=SVGNS)(coversoup)
+                images = etree.XPath('//svg:image',
+                                     namespaces=SVGNS)(coversoup)
                 if len(imgs) == 0 and len(images) == 1:
-                    cover_image = images[0].get('{http://www.w3.org/1999/xlink}href')
+                    cover_image = images[0].get(
+                        '{http://www.w3.org/1999/xlink}href'
+                    )
         if cover_image is not None:
             cover_image = re.sub('^\.\.\/', '', cover_image)
             itemhrefcovers = etree.XPath('//opf:item[translate(@href, "ABCDEFGHJIKLMNOPQRSTUVWXYZ", "abcdefghjiklmnopqrstuvwxyz")="' + cover_image.lower() + '"]', namespaces=OPFNS)(soup)
             if len(itemhrefcovers) == 1:
-                metadatas = etree.XPath('//opf:metadata', namespaces=OPFNS)(soup)
+                metadatas = etree.XPath('//opf:metadata',
+                                        namespaces=OPFNS)(soup)
 
                 if len(metadatas) == 1 and len(metacovers) == 0:
-                    newmeta = etree.Element('meta', name='cover', content=itemhrefcovers[0].get('id'))
+                    newmeta = etree.Element(
+                        'meta', name='cover',
+                        content=itemhrefcovers[0].get('id')
+                    )
                     metadatas[0].insert(0, newmeta)
                 elif len(metadatas) == 1 and len(metacovers) == 1:
                     metacovers[0].set('content', itemhrefcovers[0].get('id'))
 
-    for meta in soup.xpath("//opf:meta[starts-with(@name, 'calibre')]", namespaces=OPFNS):
+    for meta in soup.xpath("//opf:meta[starts-with(@name, 'calibre')]",
+                           namespaces=OPFNS):
         meta.getparent().remove(meta)
-    for dcid in soup.xpath("//dc:identifier[@opf:scheme='calibre']", namespaces={'dc': 'http://purl.org/dc/elements/1.1/', 'opf': 'http://www.idpf.org/2007/opf'}):
+    for dcid in soup.xpath(
+            "//dc:identifier[@opf:scheme='calibre']",
+            namespaces={'dc': 'http://purl.org/dc/elements/1.1/',
+                        'opf': 'http://www.idpf.org/2007/opf'}
+            ):
         dcid.getparent().remove(dcid)
     with open(source_file, "w") as f:
-        f.write(etree.tostring(soup.getroot(), pretty_print=True, xml_declaration=True, encoding='utf-8'))
+        f.write(etree.tostring(soup.getroot(), pretty_print=True,
+                xml_declaration=True, encoding='utf-8'))
 
 
 def fix_ncx_dtd_uid(source_file, tempdir):
@@ -316,27 +345,38 @@ def fix_ncx_dtd_uid(source_file, tempdir):
         namespaces=OPFNS
     )(opftree)[0].get('href')
     ncxtree = etree.parse(os.path.join(tempdir, ncxfile))
-    uniqid = etree.XPath('//opf:package', namespaces=OPFNS)(opftree)[0].get('unique-identifier')
+    uniqid = etree.XPath('//opf:package',
+                         namespaces=OPFNS)(opftree)[0].get('unique-identifier')
     if uniqid is None:
-        dcidentifiers = etree.XPath('//dc:identifier', namespaces=DCNS)(opftree)
+        dcidentifiers = etree.XPath('//dc:identifier',
+                                    namespaces=DCNS)(opftree)
         for dcid in dcidentifiers:
             if dcid.get('id') is not None:
                 uniqid = dcid.get('id')
                 break
-        opftree.xpath('//opf:package', namespaces=OPFNS)[0].set('unique-identifier', uniqid)
+        opftree.xpath('//opf:package',
+                      namespaces=OPFNS)[0].set('unique-identifier', uniqid)
         with open(source_file, "w") as f:
-            f.write(etree.tostring(opftree.getroot(), pretty_print=True, xml_declaration=True, encoding='utf-8'))
-    dc_identifier = etree.XPath('//dc:identifier[@id="' + uniqid + '"]/text()', namespaces=DCNS)(opftree)[0]
+            f.write(etree.tostring(opftree.getroot(), pretty_print=True,
+                                   xml_declaration=True, encoding='utf-8'))
+    dc_identifier = etree.XPath('//dc:identifier[@id="' + uniqid + '"]/text()',
+                                namespaces=DCNS)(opftree)[0]
     try:
-        metadtd = etree.XPath('//ncx:meta[@name="dtb:uid"]', namespaces=NCXNS)(ncxtree)[0]
+        metadtd = etree.XPath('//ncx:meta[@name="dtb:uid"]',
+                              namespaces=NCXNS)(ncxtree)[0]
     except IndexError:
-        newmetadtd = etree.Element('{http://www.daisy.org/z3986/2005/ncx/}meta', attrib={'name': 'dtb:uid', 'content': ''})
+        newmetadtd = etree.Element(
+            '{http://www.daisy.org/z3986/2005/ncx/}meta',
+            attrib={'name': 'dtb:uid', 'content': ''}
+        )
         ncxtree.xpath('//ncx:head', namespaces=NCXNS)[0].append(newmetadtd)
-        metadtd = etree.XPath('//ncx:meta[@name="dtb:uid"]', namespaces=NCXNS)(ncxtree)[0]
+        metadtd = etree.XPath('//ncx:meta[@name="dtb:uid"]',
+                              namespaces=NCXNS)(ncxtree)[0]
     if metadtd.get('content') != dc_identifier:
         metadtd.set('content', dc_identifier)
     with open(os.path.join(tempdir, ncxfile), 'w') as f:
-        f.write(etree.tostring(ncxtree.getroot(), pretty_print=True, xml_declaration=True, encoding='utf-8'))
+        f.write(etree.tostring(ncxtree.getroot(), pretty_print=True,
+                xml_declaration=True, encoding='utf-8'))
 
 if args.qcheck:
     QCheck(_documents, args.mod, args.validate)
@@ -350,6 +390,14 @@ elif args.kindlegen:
             kwargs = {'stdout': devnull, 'stderr': devnull}
         for _file in files:
             if _file.endswith('_moh.epub'):
+                newmobifile = os.path.splitext(_file)[0] + '.mobi'
+                if not args.force:
+                    if os.path.isfile(os.path.join(root, newmobifile)):
+                        print(
+                            'Skipping previously generated _moh file: ' +
+                            newmobifile
+                        )
+                        continue
                 print('')
                 print('Kindlegen: Converting file: ' +
                       _file.decode(sys.getfilesystemencoding()))
@@ -366,14 +414,17 @@ elif args.kindlegen:
 else:
     for root, dirs, files in os.walk(_documents):
         for _file in files:
-            if _file.endswith('.epub') and not _file.endswith('_moh.epub') and not _file.endswith('_org.epub'):
+            if (_file.endswith('.epub') and
+                    not _file.endswith('_moh.epub') and
+                    not _file.endswith('_org.epub')):
                 _newfile = os.path.splitext(_file)[0] + '_moh.epub'
 
                 # if not forced skip previously generated files
                 if not args.force:
                     if os.path.isfile(os.path.join(root, _newfile)):
                         print(
-                            'Skipping previously generated file: ' + _newfile
+                            'Skipping previously generated _moh file: ' +
+                            _newfile
                         )
                         continue
 
