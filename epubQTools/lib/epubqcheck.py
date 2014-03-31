@@ -36,17 +36,13 @@ def QCheck(_documents, _moded, _validator):
                 print('')
                 #print('************ ' + _file + ' *************')
                 _epubfile = zipfile.ZipFile(os.path.join(root, _file))
-                #print(_epubfile.namelist())
                 for _singlefile in _epubfile.namelist():
                     if _singlefile.find('.opf') > 0:
-                        #print(_singlefile)
-                        if _singlefile.find(os.sep) == -1:
+                        if _singlefile.find('/') == -1:
                             _folder = ''
                         else:
-                            _folder = _singlefile.split(os.sep)[0] + os.sep
-                        #print(_folder)
+                            _folder = _singlefile.split('/')[0] + '/'
                         opftree = etree.fromstring(_epubfile.read(_singlefile))
-                        #print etree.tostring(opftree)
                         language_tags = etree.XPath('//dc:language/text()', namespaces=DCNS)(opftree)
                         if len(language_tags) == 0:
                             print(_file.decode('utf-8') + ': No dc:language defined')
@@ -97,7 +93,6 @@ def QCheck(_documents, _moded, _validator):
                         _linkfound = _unbfound = _ufound = _wmfound = False
                         for _htmlfiletag in _htmlfiletags:
                             _htmlfilepath = _htmlfiletag.get('href')
-                            #print _folder +_htmlfilepath
                             parser = etree.XMLParser(recover=True)
                             _xhtmlsoup = etree.fromstring(_epubfile.read(_folder + _htmlfilepath), parser)
                             if _wmfound is False:
