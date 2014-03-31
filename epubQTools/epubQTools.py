@@ -78,11 +78,11 @@ def clean_temp(sourcedir):
 def find_xhtml_files(epubzipfile, tempdir):
     for singlefile in epubzipfile.namelist():
         if singlefile.find('.opf') > 0:
-            if singlefile.find(os.sep) == -1:
+            if singlefile.find('/') == -1:
                 rootepubdir = tempdir
             else:
                 rootepubdir = os.path.join(tempdir,
-                                           singlefile.split(os.sep)[0])
+                                           singlefile.split('/')[0])
             opftree = etree.fromstring(epubzipfile.read(singlefile))
             try:
                 xhtml_items = etree.XPath(
@@ -90,7 +90,7 @@ def find_xhtml_files(epubzipfile, tempdir):
                     namespaces=OPFNS
                 )(opftree)
             except:
-                print 'XHTML files not found…'
+                print 'XHTML files not found...'
             xhtml_files = []
             xhtml_file_paths = []
             for xhtml_item in xhtml_items:
@@ -108,7 +108,7 @@ def hyphenate_and_fix_conjunctions(source_file, hyph, hyphen_mark):
             namespaces=XHTMLNS
         )(source_file)
     except:
-        print 'No texts found…'
+        print 'No texts found...'
     for t in texts:
         parent = t.getparent()
         newt = ''
@@ -132,7 +132,7 @@ def fix_styles(source_file):
             namespaces=XHTMLNS
         )(source_file)
     except:
-        print 'No links found…'
+        print 'No links found...'
     for link in links:
         if link.get('type') is None:
             link.set('type', 'text/css')
@@ -414,4 +414,4 @@ else:
                 pack_epub(os.path.join(root, _newfile[0] + '_moh.epub'),
                           _tempdir)
                 clean_temp(_tempdir)
-                print('Done…')
+                print('Done...')
