@@ -49,7 +49,7 @@ for _file in _dir_content:
             _asin = re.search('.+_(.+?)\..+', _file)
             _asin_found = _asin.group(1)
         except:
-            print('No ASIN found in a current file. Skipping…')
+            print('No ASIN found in a current file. Skipping...')
             continue
         if not os.path.isfile(os.path.join(
             _kindle_path, 'system', 'thumbnails',
@@ -58,7 +58,7 @@ for _file in _dir_content:
             _kindle_path, 'system', 'thumbnails',
             'thumbnail_' + _asin.group(1) + '_EBOK_portrait.jpg'
         )):
-            print("No cover found for currect file. Trying to fix it…")
+            print("No cover found for current file. Trying to fix it...")
             _tempdir = tempfile.mkdtemp()
             original_stdout = sys.stdout  # keep a reference to STDOUT
             sys.stdout = NullDevice()  # redirect the real STDOUT
@@ -88,10 +88,10 @@ for _file in _dir_content:
                                     '_portrait.jpg'
                                 )
                             )
-                            print('Cover thumbnail copied to your device…')
+                            print('Cover thumbnail copied to your device...')
                         else:
-                            print('Cover image not found. Skipping…')
+                            print('Cover image not found. Skipping...')
             if os.path.isdir(_tempdir):
                 shutil.rmtree(_tempdir)
         else:
-            print('Cover thumbnail for current file exists. Skipping…')
+            print('Cover thumbnail for current file exists. Skipping...')
