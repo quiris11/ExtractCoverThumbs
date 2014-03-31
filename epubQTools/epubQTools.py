@@ -273,17 +273,22 @@ def fix_various_opf_problems(source_file, tempdir, xhtml_files,
 #                 allsvgimgs = etree.XPath('//svg:image',
 #                                          namespaces=SVGNS)(xhtmltree)
 #                 for svgimg in allsvgimgs:
-#                     if svgimg.get('{http://www.w3.org/1999/xlink}href').find(itemcoverhref) != -1:
+#                     if svgimg.get('{http://www.w3.org/1999/xlink}href').find(
+#                         itemcoverhref
+#                     ) != -1:
 #                         cover_file = xhtml_file
 #                         break
 #             if cover_file is not None:
 #                 for xhtml_file_path in xhtml_file_paths:
 #                     if xhtml_file_path.find(
-#                            os.path.basename(cover_file)
-#                        ) != -1:
+#                         os.path.basename(cover_file)
+#                     ) != -1:
 #                         cover_file = xhtml_file_path
 #                         break
-#                 newcoverreference = etree.Element('reference', title='Cover', type="cover",   href=cover_file)
+#                 newcoverreference = etree.Element(
+#                     'reference', title='Cover',
+#                     type="cover",   href=cover_file
+#                 )
 #                 soup.xpath('//opf:guide',
 #                            namespaces=OPFNS)[0].insert(0, newcoverreference)
     else:
@@ -310,7 +315,11 @@ def fix_various_opf_problems(source_file, tempdir, xhtml_files,
                     )
         if cover_image is not None:
             cover_image = re.sub('^\.\.\/', '', cover_image)
-            itemhrefcovers = etree.XPath('//opf:item[translate(@href, "ABCDEFGHJIKLMNOPQRSTUVWXYZ", "abcdefghjiklmnopqrstuvwxyz")="' + cover_image.lower() + '"]', namespaces=OPFNS)(soup)
+            itemhrefcovers = etree.XPath(
+                '//opf:item[translate(@href, "ABCDEFGHJIKLMNOPQRSTUVWXYZ", '
+                '"abcdefghjiklmnopqrstuvwxyz")="' + cover_image.lower() +
+                '"]', namespaces=OPFNS
+            )(soup)
             if len(itemhrefcovers) == 1:
                 metadatas = etree.XPath('//opf:metadata',
                                         namespaces=OPFNS)(soup)
@@ -378,115 +387,130 @@ def fix_ncx_dtd_uid(source_file, tempdir):
         f.write(etree.tostring(ncxtree.getroot(), pretty_print=True,
                 xml_declaration=True, encoding='utf-8'))
 
-if args.qcheck:
-    QCheck(_documents, args.mod, args.validate)
-elif args.kindlegen:
-    for root, dirs, files in os.walk(_documents):
-        verbose = False
-        if verbose:
-            kwargs = {}
-        else:
-            devnull = open(os.devnull, 'w')
-            kwargs = {'stdout': devnull, 'stderr': devnull}
-        for _file in files:
-            if _file.endswith('_moh.epub'):
-                newmobifile = os.path.splitext(_file)[0] + '.mobi'
-                if not args.force:
-                    if os.path.isfile(os.path.join(root, newmobifile)):
-                        print(
-                            'Skipping previously generated _moh file: ' +
-                            newmobifile
-                        )
-                        continue
-                print('')
-                print('Kindlegen: Converting file: ' +
-                      _file.decode(sys.getfilesystemencoding()))
-                retcode = subprocess.call(['kindlegen', '-c0',
-                                          os.path.join(root, _file)],
-                                          **kwargs)
-                if retcode == 1:
-                    print('MOBI file built with WARNINGS!')
-                elif retcode == 2:
-                    print('ERROR! Building MOBI file process aborted!')
-                elif retcode == 0:
-                    print('MOBI file built successfully.')
 
-else:
-    for root, dirs, files in os.walk(_documents):
-        for _file in files:
-            if (_file.endswith('.epub') and
-                    not _file.endswith('_moh.epub') and
-                    not _file.endswith('_org.epub')):
-                _newfile = os.path.splitext(_file)[0] + '_moh.epub'
+def main():
+    if args.qcheck:
+        QCheck(_documents, args.mod, args.validate)
+    elif args.kindlegen:
+        for root, dirs, files in os.walk(_documents):
+            verbose = False
+            if verbose:
+                kwargs = {}
+            else:
+                devnull = open(os.devnull, 'w')
+                kwargs = {'stdout': devnull, 'stderr': devnull}
+            for _file in files:
+                if _file.endswith('_moh.epub'):
+                    newmobifile = os.path.splitext(_file)[0] + '.mobi'
+                    if not args.force:
+                        if os.path.isfile(os.path.join(root, newmobifile)):
+                            print(
+                                'Skipping previously generated _moh file: ' +
+                                newmobifile
+                            )
+                            continue
+                    print('')
+                    print('Kindlegen: Converting file: ' +
+                          _file.decode(sys.getfilesystemencoding()))
+                    retcode = subprocess.call(['kindlegen', '-c0',
+                                              os.path.join(root, _file)],
+                                              **kwargs)
+                    if retcode == 1:
+                        print('MOBI file built with WARNINGS!')
+                    elif retcode == 2:
+                        print('ERROR! Building MOBI file process aborted!')
+                    elif retcode == 0:
+                        print('MOBI file built successfully.')
 
-                # if not forced skip previously generated files
-                if not args.force:
-                    if os.path.isfile(os.path.join(root, _newfile)):
-                        print(
-                            'Skipping previously generated _moh file: ' +
-                            _newfile
-                        )
-                        continue
+    else:
+        for root, dirs, files in os.walk(_documents):
+            for _file in files:
+                if (_file.endswith('.epub') and
+                        not _file.endswith('_moh.epub') and
+                        not _file.endswith('_org.epub')):
+                    _newfile = os.path.splitext(_file)[0] + '_moh.epub'
 
-                print('')
-                print('Working on: ' +
-                      _file.decode(sys.getfilesystemencoding()))
-                _epubzipfile, _tempdir = unpack_epub(os.path.join(root, _file))
+                    # if not forced skip previously generated files
+                    if not args.force:
+                        if os.path.isfile(os.path.join(root, _newfile)):
+                            print(
+                                'Skipping previously generated _moh file: ' +
+                                _newfile
+                            )
+                            continue
 
-                # remove obsolete calibre_bookmarks.txt
-                try:
-                    os.remove(os.path.join(
-                        _tempdir, 'META-INF', 'calibre_bookmarks.txt'
-                    ))
-                except OSError:
-                    pass
-
-                _xhtml_files, _xhtml_file_paths, _opf_file, _rootepubdir = find_xhtml_files(_epubzipfile, _tempdir)
-                fix_various_opf_problems(
-                    _opf_file, _rootepubdir, _xhtml_files, _xhtml_file_paths
-                )
-                fix_ncx_dtd_uid(_opf_file, _rootepubdir)
-                fix_html_toc(
-                    _opf_file, _rootepubdir, _xhtml_files, _xhtml_file_paths
-                )
-                for _single_xhtml in _xhtml_files:
-                    with open(_single_xhtml, 'r') as content_file:
-                        c = content_file.read()
-                        c = c.replace('&shy;', '')
-                        c = c.replace('&nbsp;', ' ')
-                    _xhtmltree = etree.fromstring(
-                        c, parser=etree.XMLParser(recover=False)
+                    print('')
+                    print('Working on: ' +
+                          _file.decode(sys.getfilesystemencoding()))
+                    _epubzipfile, _tempdir = unpack_epub(
+                        os.path.join(root, _file)
                     )
-                    _xhtmltree = hyphenate_and_fix_conjunctions(
-                        _xhtmltree, _hyph, _hyphen_mark
+
+                    # remove obsolete calibre_bookmarks.txt
+                    try:
+                        os.remove(os.path.join(
+                            _tempdir, 'META-INF', 'calibre_bookmarks.txt'
+                        ))
+                    except OSError:
+                        pass
+
+                    (
+                        _xhtml_files,
+                        _xhtml_file_paths,
+                        _opf_file,
+                        _rootepubdir
+                    ) = find_xhtml_files(_epubzipfile, _tempdir)
+                    fix_various_opf_problems(
+                        _opf_file, _rootepubdir,
+                        _xhtml_files, _xhtml_file_paths
                     )
-                    _xhtmltree = fix_styles(_xhtmltree)
-
-                    # remove watermarks
-                    _wmarks = etree.XPath(
-                        '//xhtml:span[starts-with(text(), "==")]',
-                        namespaces=XHTMLNS
-                    )(_xhtmltree)
-                    for wm in _wmarks:
-                        wm.getparent().remove(wm)
-
-                    # remove meta charsets
-                    _metacharsets = etree.XPath(
-                        '//xhtml:meta[@charset="utf-8"]',
-                        namespaces=XHTMLNS
-                    )(_xhtmltree)
-                    for mch in _metacharsets:
-                        mch.getparent().remove(mch)
-
-                    with open(_single_xhtml, "w") as f:
-                        f.write(etree.tostring(
-                            _xhtmltree,
-                            pretty_print=True,
-                            xml_declaration=True,
-                            encoding="utf-8",
-                            doctype=DTD)
+                    fix_ncx_dtd_uid(_opf_file, _rootepubdir)
+                    fix_html_toc(
+                        _opf_file, _rootepubdir,
+                        _xhtml_files, _xhtml_file_paths
+                    )
+                    for _single_xhtml in _xhtml_files:
+                        with open(_single_xhtml, 'r') as content_file:
+                            c = content_file.read()
+                            c = c.replace('&shy;', '')
+                            c = c.replace('&nbsp;', ' ')
+                        _xhtmltree = etree.fromstring(
+                            c, parser=etree.XMLParser(recover=False)
                         )
-                pack_epub(os.path.join(root, _newfile),
-                          _tempdir)
-                clean_temp(_tempdir)
-                print('Done...')
+                        _xhtmltree = hyphenate_and_fix_conjunctions(
+                            _xhtmltree, _hyph, _hyphen_mark
+                        )
+                        _xhtmltree = fix_styles(_xhtmltree)
+
+                        # remove watermarks
+                        _wmarks = etree.XPath(
+                            '//xhtml:span[starts-with(text(), "==")]',
+                            namespaces=XHTMLNS
+                        )(_xhtmltree)
+                        for wm in _wmarks:
+                            wm.getparent().remove(wm)
+
+                        # remove meta charsets
+                        _metacharsets = etree.XPath(
+                            '//xhtml:meta[@charset="utf-8"]',
+                            namespaces=XHTMLNS
+                        )(_xhtmltree)
+                        for mch in _metacharsets:
+                            mch.getparent().remove(mch)
+
+                        with open(_single_xhtml, "w") as f:
+                            f.write(etree.tostring(
+                                _xhtmltree,
+                                pretty_print=True,
+                                xml_declaration=True,
+                                encoding="utf-8",
+                                doctype=DTD)
+                            )
+                    pack_epub(os.path.join(root, _newfile),
+                              _tempdir)
+                    clean_temp(_tempdir)
+                    print('Done...')
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
