@@ -102,13 +102,32 @@ def qcheck_single_file(_singlefile, _epubfile, _file_dec):
     for _htmlfiletag in _htmlfiletags:
         _htmlfilepath = _htmlfiletag.get('href')
         parser = etree.XMLParser(recover=True)
-        _xhtmlsoup = etree.fromstring(_epubfile.read(_folder + _htmlfilepath),
-                                      parser)
+        try:
+            _xhtmlsoup = etree.fromstring(
+                _epubfile.read(_folder + _htmlfilepath), parser
+            )
+        except:
+            # First try replace %20 with spaces and check loading tree again
+            complete_path = _folder + _htmlfilepath
+            complete_path = complete_path.replace('%20', ' ')
+            try:
+                print('Potential problem with file path: ' +
+                      _folder + _htmlfilepath)
+                print('Replacing %20 with space and '
+                      'trying load a file again...')
+                _xhtmlsoup = etree.fromstring(
+                    _epubfile.read(complete_path), parser
+                )
+                print('Loading succeed…')
+            except:
+                print('There is something wrong with file path: ' +
+                      complete_path + ' Skipping...')
+                continue
         if _wmfound is False:
             _watermarks = etree.XPath('//*[starts-with(text(),"==")]',
                                       namespaces=XHTMLNS)(_xhtmlsoup)
             if len(_watermarks) > 0:
-                print(_file_dec + ': WM found')
+                print(_file_dec + ': Potential problematic WM found')
                 _wmfound = True
 
         if metcharfound is False:
