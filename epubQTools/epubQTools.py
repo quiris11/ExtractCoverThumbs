@@ -17,7 +17,7 @@ from lxml import etree
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
 from hyphenator import Hyphenator
-from epubqcheck import QCheck
+from epubqcheck import qcheck
 
 _my_language = 'pl'
 _hyphen_mark = u'\u00AD'
@@ -390,7 +390,7 @@ def fix_ncx_dtd_uid(source_file, tempdir):
 
 def main():
     if args.qcheck:
-        QCheck(_documents, args.mod, args.validate)
+        qcheck(_documents, args.mod, args.validate)
     elif args.kindlegen:
         for root, dirs, files in os.walk(_documents):
             verbose = False
