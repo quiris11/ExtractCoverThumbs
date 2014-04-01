@@ -18,6 +18,26 @@ DCNS = {'dc': 'http://purl.org/dc/elements/1.1/'}
 NCXNS = {'ncx': 'http://www.daisy.org/z3986/2005/ncx/'}
 
 
+def find_cover_image(_opftree, _file_dec):
+    images = etree.XPath('//opf:item[@media-type="image/jpeg"]',
+                         namespaces=OPFNS)(_opftree)
+    cover_found = 0
+    if len(images) != 0:
+        for imag in images:
+            if imag.get('href').find('cover') != -1:
+                cover_found = 1
+                print(_file_dec + ': Candidate image for cover found:' +
+                      ' href=' + imag.get('href') +
+                      ' id=' + imag.get('id'))
+        if cover_found == 0:
+            print(_file_dec + ': No candidate cover images found. '
+                  'Check a list of all images:')
+            for imag in images:
+                print imag.get('href')
+    else:
+        print(_file_dec + ': No images in an entire book found...')
+
+
 def qcheck_single_file(_singlefile, _epubfile, _file_dec):
     if _singlefile.find('/') == -1:
         _folder = ''
@@ -72,10 +92,13 @@ def qcheck_single_file(_singlefile, _epubfile, _file_dec):
     elif _reftextcount > 1:
         print(_file_dec + ': Multiple text guide elements defined.')
 
+    if len(_metacovers) == 0 and _refcovcount == 0:
+        find_cover_image(opftree, _file_dec)
+
     _htmlfiletags = etree.XPath(
         '//opf:item[@media-type="application/xhtml+xml"]', namespaces=OPFNS
     )(opftree)
-    _linkfound = _unbfound = _ufound = _wmfound = False
+    _linkfound = _unbfound = _ufound = _wmfound = metcharfound = False
     for _htmlfiletag in _htmlfiletags:
         _htmlfilepath = _htmlfiletag.get('href')
         parser = etree.XMLParser(recover=True)
@@ -87,17 +110,22 @@ def qcheck_single_file(_singlefile, _epubfile, _file_dec):
             if len(_watermarks) > 0:
                 print(_file_dec + ': WM found')
                 _wmfound = True
-        _metacharsets = etree.XPath('//xhtml:meta[@charset="utf-8"]',
-                                    namespaces=XHTMLNS)(_xhtmlsoup)
-        for a in _metacharsets:
-            print(etree.tostring(a))
+
+        if metcharfound is False:
+            _metacharsets = etree.XPath('//xhtml:meta[@charset="utf-8"]',
+                                        namespaces=XHTMLNS)(_xhtmlsoup)
+            if len(_metacharsets) > 0:
+                print(_file_dec + ': Problematic <meta '
+                      'charset="utf-8" /> found.')
+                metcharfound = True
+
         _alltexts = etree.XPath('//xhtml:body//text()',
                                 namespaces=XHTMLNS)(_xhtmlsoup)
         _alltext = ' '.join(_alltexts)
 
         if _reftoccount == 0 and _alltext.find(u'Spis treści') != -1:
-                print(_file_dec + ': ################## ' +
-                      _htmlfilepath + ' #####################')
+                print(_file_dec + ': Html TOC candidate found: ' +
+                      _htmlfilepath)
         check_hyphs = False
         if check_hyphs:
             if not _ufound and _alltext.find(u'\u00AD') != -1:
@@ -128,6 +156,7 @@ def qcheck_single_file(_singlefile, _epubfile, _file_dec):
             dc_identifier = ''
             print(_file_dec + ': dc:identifier with unique-id not found')
     else:
+        dc_identifier = ''
         print(_file_dec + ': no unique-identifier found')
     try:
         metadtd = etree.XPath('//ncx:meta[@name="dtb:uid"]',
