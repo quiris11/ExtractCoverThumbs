@@ -217,15 +217,15 @@ def qcheck(_documents, _moded, _validator):
                     if singlefile.find('.opf') > 0:
                         qcheck_single_file(singlefile, epubfile, file_dec)
 
-    print('')
-    if _validator:
-        _epubchecker_path = os.path.join(
-            os.path.dirname(__file__), os.pardir, 'resources',
-            'epubcheck-3.0.1', 'epubcheck-3.0.1.jar'
-        )
-        print('***** Validating: ' + str(_file) + ' *****')
-        subprocess.call(['java', '-jar', '%s' % _epubchecker_path,
-                        '%s' % str(os.path.join(root, _file))])
+                print('')
+                if _validator:
+                    _epubchecker_path = os.path.join(
+                        os.path.dirname(__file__), os.pardir, 'resources',
+                        'epubcheck-3.0.1', 'epubcheck-3.0.1.jar'
+                    )
+                    print('***** Validating: ' + str(_file) + ' *****')
+                    subprocess.call(['java', '-jar', '%s' % _epubchecker_path,
+                                    '%s' % str(os.path.join(root, _file))])
 
 
 if __name__ == "__main__":
