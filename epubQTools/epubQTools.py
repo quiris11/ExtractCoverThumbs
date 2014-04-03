@@ -37,7 +37,7 @@ parser.add_argument("directory", help="Directory with EPUB files stored")
 parser.add_argument("-q", "--qcheck", help="validate files with epubqcheck "
                     "internal tool",
                     action="store_true")
-parser.add_argument("-v", "--validate", help="validate epub files with "
+parser.add_argument("-p", "--epubcheck", help="validate epub files with "
                     " EpubCheck 3.0.1 tool",
                     action="store_true")
 parser.add_argument("-m", "--mod", help="validate only _moh.epub files "
@@ -49,6 +49,8 @@ parser.add_argument("-k", "--kindlegen", help="convert _moh.epub files to"
                     " .mobi with kindlegen", action="store_true")
 parser.add_argument("-d", "--huffdic", help="tell kindlegen to use huffdic "
                     "compression (slow conversion)", action="store_true")
+parser.add_argument("-v", "--verbose", help="more detailed output",
+                    action="store_true")
 parser.add_argument("-f", "--force",
                     help="overwrite previously generated _moh.epub or "
                     " .mobi files (only with -k or -e)",
@@ -56,7 +58,7 @@ parser.add_argument("-f", "--force",
 args = parser.parse_args()
 
 _documents = args.directory
-validator = args.validate
+validator = args.epubcheck
 
 
 def unpack_epub(source_epub):
@@ -398,12 +400,11 @@ def fix_ncx_dtd_uid(source_file, tempdir):
 
 def main():
     if args.qcheck:
-        qcheck(_documents, args.mod, args.validate)
+        qcheck(_documents, args.mod, args.epubcheck)
     elif args.kindlegen:
         compression = '-c2' if args.huffdic else '-c1'
         for root, dirs, files in os.walk(_documents):
-            verbose = False
-            if verbose:
+            if args.verbose:
                 kwargs = {}
             else:
                 devnull = open(os.devnull, 'w')
