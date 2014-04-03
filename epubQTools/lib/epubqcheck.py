@@ -238,9 +238,9 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--mod",
                         help="Check only _mod.epub files",
                         action="store_true")
-    parser.add_argument("-v", "--validate",
-                        help="Validate files with epubchecker",
+    parser.add_argument("-p", "--epubcheck",
+                        help="Validate files with epubcheck",
                         action="store_true")
     args = parser.parse_args()
 
-    qcheck(args.directory, args.mod, args.validate)
+    qcheck(args.directory, args.mod, args.epubcheck)
