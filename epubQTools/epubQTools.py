@@ -34,17 +34,23 @@ SVGNS = {'svg': 'http://www.w3.org/2000/svg'}
 
 parser = argparse.ArgumentParser()
 parser.add_argument("directory", help="Directory with EPUB files stored")
-parser.add_argument("-m", "--mod", help="validate only _moh.epub files",
+parser.add_argument("-q", "--qcheck", help="validate files with epubqcheck "
+                    "internal tool",
                     action="store_true")
-parser.add_argument("-v", "--validate", help="validate files with epubchecker",
+parser.add_argument("-v", "--validate", help="validate epub files with "
+                    " EpubCheck 3.0.1 tool",
                     action="store_true")
+parser.add_argument("-m", "--mod", help="validate only _moh.epub files "
+                    "(only with -q or -v)",
+                    action="store_true")
+parser.add_argument("-e", "--epub", help="fix and hyphenate original epub "
+                    "files to _moh.epub files", action="store_true")
+parser.add_argument("-k", "--kindlegen", help="convert _moh.epub files to"
+                    " .mobi with kindlegen", action="store_true")
 parser.add_argument("-f", "--force",
-                    help="force overwrite previously generated files",
+                    help="overwrite previously generated _moh.epub or "
+                    " .mobi files (only with -k or -e)",
                     action="store_true")
-parser.add_argument("-q", "--qcheck", help="validate files with epubqcheck",
-                    action="store_true")
-parser.add_argument("-k", "--kindlegen", help="convert hyphenated files to"
-                    " Mobi with kindlegen", action="store_true")
 args = parser.parse_args()
 
 _documents = args.directory
@@ -422,7 +428,7 @@ def main():
                     elif retcode == 0:
                         print('MOBI file built successfully.')
 
-    else:
+    elif args.epub:
         for root, dirs, files in os.walk(_documents):
             for _file in files:
                 if (_file.endswith('.epub') and
@@ -510,6 +516,11 @@ def main():
                               _tempdir)
                     clean_temp(_tempdir)
                     print('Done...')
+    else:
+        parser.print_help()
+        print("* * *")
+        print("* At least one of above optional arguments is required.")
+        print("* * *")
     return 0
 
 if __name__ == '__main__':
