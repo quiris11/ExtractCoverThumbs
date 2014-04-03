@@ -47,6 +47,8 @@ parser.add_argument("-e", "--epub", help="fix and hyphenate original epub "
                     "files to _moh.epub files", action="store_true")
 parser.add_argument("-k", "--kindlegen", help="convert _moh.epub files to"
                     " .mobi with kindlegen", action="store_true")
+parser.add_argument("-d", "--huffdic", help="tell kindlegen to use huffdic "
+                    "compression (slow conversion)", action="store_true")
 parser.add_argument("-f", "--force",
                     help="overwrite previously generated _moh.epub or "
                     " .mobi files (only with -k or -e)",
@@ -398,6 +400,7 @@ def main():
     if args.qcheck:
         qcheck(_documents, args.mod, args.validate)
     elif args.kindlegen:
+        compression = '-c2' if args.huffdic else '-c1'
         for root, dirs, files in os.walk(_documents):
             verbose = False
             if verbose:
@@ -418,7 +421,7 @@ def main():
                     print('')
                     print('Kindlegen: Converting file: ' +
                           _file.decode(sys.getfilesystemencoding()))
-                    retcode = subprocess.call(['kindlegen', '-c0',
+                    retcode = subprocess.call(['kindlegen', compression,
                                               os.path.join(root, _file)],
                                               **kwargs)
                     if retcode == 1:
