@@ -45,6 +45,9 @@ parser.add_argument("-m", "--mod", help="validate only _moh.epub files "
                     action="store_true")
 parser.add_argument("-e", "--epub", help="fix and hyphenate original epub "
                     "files to _moh.epub files", action="store_true")
+parser.add_argument("-r", "--resetmargins", help="reset CSS margins for "
+                    "body, html and @page in _moh.epub files (only with -e)",
+                    action="store_true")
 parser.add_argument("-k", "--kindlegen", help="convert _moh.epub files to"
                     " .mobi with kindlegen", action="store_true")
 parser.add_argument("-d", "--huffdic", help="tell kindlegen to use huffdic "
@@ -398,6 +401,23 @@ def fix_ncx_dtd_uid(source_file, tempdir):
                 xml_declaration=True, encoding='utf-8'))
 
 
+def append_reset_css(source_file):
+    try:
+        heads = etree.XPath(
+            '//xhtml:head',
+            namespaces=XHTMLNS
+        )(source_file)
+    except:
+        print('No head found...')
+    heads[0].append(etree.fromstring(
+        '<style type="text/css">'
+        '@page { margin: 0 !important } '
+        'html, body { margin: 0 !important; padding: 0 !important }'
+        '</style>'
+    ))
+    return source_file
+
+
 def main():
     if args.qcheck:
         qcheck(_documents, args.mod, args.epubcheck)
@@ -491,6 +511,9 @@ def main():
                             _xhtmltree, _hyph, _hyphen_mark
                         )
                         _xhtmltree = fix_styles(_xhtmltree)
+
+                        if args.resetmargins:
+                            _xhtmltree = append_reset_css(_xhtmltree)
 
                         # remove watermarks
                         _wmarks = etree.XPath(
