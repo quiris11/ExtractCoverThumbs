@@ -62,7 +62,7 @@ args = parser.parse_args()
 
 _documents = args.directory
 validator = args.epubcheck
-
+verbose = args.verbose
 
 def unpack_epub(source_epub):
     epubzipfile = zipfile.ZipFile(source_epub)
@@ -402,6 +402,8 @@ def fix_ncx_dtd_uid(source_file, tempdir):
 
 
 def append_reset_css(source_file):
+    if verbose:
+        print('Resetting CSS body margin and padding...')
     try:
         heads = etree.XPath(
             '//xhtml:head',
@@ -411,10 +413,12 @@ def append_reset_css(source_file):
         print('No head found...')
     heads[0].append(etree.fromstring(
         '<style type="text/css">'
-        '@page { margin: 0 !important } '
-        'html, body { margin: 0 !important; padding: 0 !important }'
+        '@page { margin: 5pt } '
+        'body { margin: 5pt; padding: 0 }'
         '</style>'
     ))
+    if verbose:
+        print('Done...')
     return source_file
 
 
@@ -424,7 +428,7 @@ def main():
     elif args.kindlegen:
         compression = '-c2' if args.huffdic else '-c1'
         for root, dirs, files in os.walk(_documents):
-            if args.verbose:
+            if verbose:
                 kwargs = {}
             else:
                 devnull = open(os.devnull, 'w')
