@@ -417,8 +417,6 @@ def append_reset_css(source_file):
         'body { margin: 5pt; padding: 0 }'
         '</style>'
     ))
-    if verbose:
-        print('Done...')
     return source_file
 
 
