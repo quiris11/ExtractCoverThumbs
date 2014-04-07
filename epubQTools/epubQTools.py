@@ -266,9 +266,14 @@ def set_cover_guide_ref(_xhtml_files, _itemcoverhref, _xhtml_file_paths,
             'reference', title='Cover',
             type="cover",   href=cover_file
         )
+        _refcovers = etree.XPath('//opf:reference[@type="cover"]',
+                                 namespaces=OPFNS)(_soup)
         try:
-            _soup.xpath('//opf:guide',
-                        namespaces=OPFNS)[0].insert(0, _newcoverreference)
+            if len(_refcovers) == 1:
+                _refcovers[0].set('href', cover_file)
+            else:
+                _soup.xpath('//opf:guide',
+                            namespaces=OPFNS)[0].insert(0, _newcoverreference)
         except IndexError:
             newguide = etree.Element('{http://www.idpf.org/2007/opf}guide')
             newguide.append(_newcoverreference)
@@ -284,6 +289,26 @@ def set_cover_meta_elem(_metacovers, _soup, _content):
         _metadatas[0].insert(0, _newmeta)
     elif len(_metadatas) == 1 and len(_metacovers) == 1:
         _metacovers[0].set('content', _content)
+
+
+def force_cover_find(_soup):
+    print('Force cover find...')
+    images = etree.XPath('//opf:item[@media-type="image/jpeg"]',
+                         namespaces=OPFNS)(_soup)
+    cover_found = 0
+    if len(images) != 0:
+        for imag in images:
+            img_href_lower = imag.get('href').lower()
+            if (img_href_lower.find('cover') != -1 or
+                    img_href_lower.find('okladka') != -1):
+                cover_found = 1
+                print('Candidate image for cover found:' +
+                      ' href=' + imag.get('href') +
+                      ' id=' + imag.get('id'))
+                return imag.get('href'), imag.get('id')
+                break
+    if cover_found == 0:
+        return None, None
 
 
 def fix_various_opf_problems(source_file, tempdir, xhtml_files,
@@ -347,6 +372,15 @@ def fix_various_opf_problems(source_file, tempdir, xhtml_files,
                 cover_image = images[0].get(
                     '{http://www.w3.org/1999/xlink}href'
                 )
+        else:
+            imag_href, imag_id = force_cover_find(soup)
+            if imag_href is not None and imag_id is not None:
+                soup = set_cover_guide_ref(
+                    xhtml_files, imag_href, xhtml_file_paths, soup
+                )
+                set_cover_meta_elem(metacovers, soup, imag_id)
+            else:
+                print('No images found...')
         if cover_image is not None:
             cover_image = re.sub('^\.\.\/', '', cover_image)
             itemhrefcovers = etree.XPath(
@@ -360,25 +394,12 @@ def fix_various_opf_problems(source_file, tempdir, xhtml_files,
                 )
 
     elif len(metacovers) == 0 and len(refcovers) == 0 and args.findcover:
-        print('Force cover find...')
-        images = etree.XPath('//opf:item[@media-type="image/jpeg"]',
-                             namespaces=OPFNS)(soup)
-        cover_found = 0
-        if len(images) != 0:
-            for imag in images:
-                img_href_lower = imag.get('href').lower()
-                if (img_href_lower.find('cover') != -1 or
-                        img_href_lower.find('okladka') != -1):
-                    cover_found = 1
-                    print('Candidate image for cover found:' +
-                          ' href=' + imag.get('href') +
-                          ' id=' + imag.get('id'))
-                    break
-            if cover_found == 1:
-                soup = set_cover_guide_ref(
-                    xhtml_files, imag.get('href'), xhtml_file_paths, soup
-                )
-                set_cover_meta_elem(metacovers, soup, imag.get('id'))
+        imag_href, imag_id = force_cover_find(soup)
+        if imag_href is not None and imag_id is not None:
+            soup = set_cover_guide_ref(
+                xhtml_files, imag_href, xhtml_file_paths, soup
+            )
+            set_cover_meta_elem(metacovers, soup, imag_id)
         else:
             print('No images found...')
 
