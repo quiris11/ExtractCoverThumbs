@@ -246,15 +246,15 @@ def set_cover_guide_ref(_xhtml_files, _itemcoverhref, _xhtml_file_paths,
 
         allimgs = etree.XPath('//xhtml:img', namespaces=XHTMLNS)(xhtmltree)
         for img in allimgs:
-            if img.get('src').find(_itemcoverhref) != -1:
+            if (img.get('src').find(_itemcoverhref) != -1 or
+                    img.get('src').find('okladka_fmt') != -1):
                 cover_file = xhtml_file
                 break
-
         allsvgimgs = etree.XPath('//svg:image', namespaces=SVGNS)(xhtmltree)
         for svgimg in allsvgimgs:
-            if svgimg.get('{http://www.w3.org/1999/xlink}href').find(
-                itemcoverhref
-            ) != -1:
+            svg_img_href = svgimg.get('{http://www.w3.org/1999/xlink}href')
+            if (svg_img_href.find(itemcoverhref) != -1 or
+                    svg_img_href.find('okladka_fmt') != -1):
                 cover_file = xhtml_file
                 break
     if cover_file is not None:
