@@ -259,83 +259,77 @@ def fix_various_opf_problems(source_file, tempdir, xhtml_files,
             newlang.text = _my_language
             metadata.insert(0, newlang)
 
-    # add missing meta cover
+    # add missing meta cover and cover reference guide element
     metacovers = etree.XPath('//opf:meta[@name="cover"]',
                              namespaces=OPFNS)(soup)
     refcovers = etree.XPath('//opf:reference[@type="cover"]',
                             namespaces=OPFNS)(soup)
-    if len(metacovers) == 1:
+    if len(metacovers) == 1 and len(refcovers) == 0:
+        # set missing cover reference guide element
         itemcovers = etree.XPath(
             '//opf:item[@id="' + metacovers[0].get('content') + '"]',
             namespaces=OPFNS
         )(soup)
+        if verbose:
+            print('Defining cover guide element...')
+        itemcoverhref = os.path.basename(itemcovers[0].get('href'))
+        cover_file = None
+        for xhtml_file in xhtml_files:
+            xhtmltree = etree.parse(xhtml_file,
+                                    parser=etree.XMLParser(recover=True))
 
-        # find html cover file
-        if len(refcovers) == 0:
-            if verbose:
-                print('Defining cover guide element...')
-            itemcoverhref = os.path.basename(itemcovers[0].get('href'))
-            cover_file = None
-            for xhtml_file in xhtml_files:
-                xhtmltree = etree.parse(xhtml_file,
-                                        parser=etree.XMLParser(recover=True))
+            allimgs = etree.XPath('//xhtml:img',
+                                  namespaces=XHTMLNS)(xhtmltree)
+            for img in allimgs:
+                if img.get('src').find(itemcoverhref) != -1:
+                    cover_file = xhtml_file
+                    break
 
-                allimgs = etree.XPath('//xhtml:img',
-                                      namespaces=XHTMLNS)(xhtmltree)
-                for img in allimgs:
-                    if img.get('src').find(itemcoverhref) != -1:
-                        cover_file = xhtml_file
-                        break
-
-                allsvgimgs = etree.XPath('//svg:image',
-                                         namespaces=SVGNS)(xhtmltree)
-                for svgimg in allsvgimgs:
-                    if svgimg.get('{http://www.w3.org/1999/xlink}href').find(
-                        itemcoverhref
-                    ) != -1:
-                        cover_file = xhtml_file
-                        break
-            if cover_file is not None:
-                for xhtml_file_path in xhtml_file_paths:
-                    if xhtml_file_path.find(
-                            os.path.basename(cover_file)
-                    ) != -1:
-                        cover_file = xhtml_file_path
-                        break
-                newcoverreference = etree.Element(
-                    'reference', title='Cover',
-                    type="cover",   href=cover_file
-                )
-                soup.xpath('//opf:guide',
-                           namespaces=OPFNS)[0].insert(0, newcoverreference)
-                if verbose:
-                    print('Cover guide element defined...')
-            else:
-                print('Unable to find html cover file. Probably '
-                      'different cover images for meta cover and '
-                      'html cover...')
-    else:
-        itemcovers = []
-    if len(metacovers) == 0 or len(itemcovers) == 0:
-        refcovers = etree.XPath('//opf:reference[@type="cover"]',
-                                namespaces=OPFNS)(soup)
-        cover_image = None
-        if len(refcovers) == 1:
-            coversoup = etree.parse(
-                os.path.join(tempdir, refcovers[0].get('href')),
-                parser=etree.XMLParser(recover=True)
+            allsvgimgs = etree.XPath('//svg:image',
+                                     namespaces=SVGNS)(xhtmltree)
+            for svgimg in allsvgimgs:
+                if svgimg.get('{http://www.w3.org/1999/xlink}href').find(
+                    itemcoverhref
+                ) != -1:
+                    cover_file = xhtml_file
+                    break
+        if cover_file is not None:
+            for xhtml_file_path in xhtml_file_paths:
+                if xhtml_file_path.find(
+                        os.path.basename(cover_file)
+                ) != -1:
+                    cover_file = xhtml_file_path
+                    break
+            newcoverreference = etree.Element(
+                'reference', title='Cover',
+                type="cover",   href=cover_file
             )
-            if etree.tostring(coversoup) is not None:
-                imgs = etree.XPath('//xhtml:img',
-                                   namespaces=XHTMLNS)(coversoup)
-                if len(imgs) == 1:
-                    cover_image = imgs[0].get('src')
-                images = etree.XPath('//svg:image',
-                                     namespaces=SVGNS)(coversoup)
-                if len(imgs) == 0 and len(images) == 1:
-                    cover_image = images[0].get(
-                        '{http://www.w3.org/1999/xlink}href'
-                    )
+            soup.xpath('//opf:guide',
+                       namespaces=OPFNS)[0].insert(0, newcoverreference)
+            if verbose:
+                print('Cover guide element defined...')
+        else:
+            print('Unable to find html cover file. Probably '
+                  'different cover images for meta cover and '
+                  'html cover...')
+    elif len(metacovers) == 0 and len(refcovers) == 1:
+        # set missing cover meta element
+        cover_image = None
+        coversoup = etree.parse(
+            os.path.join(tempdir, refcovers[0].get('href')),
+            parser=etree.XMLParser(recover=True)
+        )
+        if etree.tostring(coversoup) is not None:
+            imgs = etree.XPath('//xhtml:img',
+                               namespaces=XHTMLNS)(coversoup)
+            if len(imgs) == 1:
+                cover_image = imgs[0].get('src')
+            images = etree.XPath('//svg:image',
+                                 namespaces=SVGNS)(coversoup)
+            if len(imgs) == 0 and len(images) == 1:
+                cover_image = images[0].get(
+                    '{http://www.w3.org/1999/xlink}href'
+                )
         if cover_image is not None:
             cover_image = re.sub('^\.\.\/', '', cover_image)
             itemhrefcovers = etree.XPath(
