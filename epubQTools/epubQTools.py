@@ -429,7 +429,12 @@ def fix_various_opf_problems(source_file, tempdir, xhtml_files,
             ):
         dcid.getparent().remove(dcid)
 
-    with open(source_file, "w") as f:
+    # name='cover' should be before content attribute
+    for cover in soup.xpath('//opf:meta[@name="cover" and @content]',
+                            namespaces=OPFNS):
+        cover.set('content', cover.attrib.pop('content'))
+
+    with open(source_file, 'w') as f:
         f.write(etree.tostring(soup.getroot(), pretty_print=True,
                 xml_declaration=True, encoding='utf-8'))
 
