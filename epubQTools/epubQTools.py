@@ -48,6 +48,9 @@ parser.add_argument("-e", "--epub", help="fix and hyphenate original epub "
 parser.add_argument("-r", "--resetmargins", help="reset CSS margins for "
                     "body, html and @page in _moh.epub files (only with -e)",
                     action="store_true")
+parser.add_argument("-c", "--findcover", help="force find cover (risky) "
+                    "(only with -e)",
+                    action="store_true")
 parser.add_argument("-k", "--kindlegen", help="convert _moh.epub files to"
                     " .mobi with kindlegen", action="store_true")
 parser.add_argument("-d", "--huffdic", help="tell kindlegen to use huffdic "
@@ -175,10 +178,10 @@ def fix_html_toc(opf_file, tempdir, xhtml_files, xhtml_file_paths):
                 if xhtml_file_path.find(os.path.basename(html_toc)) != -1:
                     html_toc = xhtml_file_path
                     break
-            newtocreference = etree.Element('reference', title='TOC',
-                                            type="toc", href=html_toc)
-            soup.xpath('//opf:guide',
-                       namespaces=OPFNS)[0].insert(0, newtocreference)
+            newtocreference = etree.Element(
+                '{http://www.idpf.org/2007/opf}reference', title='TOC',
+                type='toc', href=html_toc
+            )
         else:
             parser = etree.XMLParser(remove_blank_text=True)
             transform = etree.XSLT(etree.parse(os.path.join(
@@ -213,25 +216,74 @@ def fix_html_toc(opf_file, tempdir, xhtml_files, xhtml_file_paths):
             newtocreference = etree.Element(
                 '{http://www.idpf.org/2007/opf}reference',
                 title='TOC',
-                type="toc",
+                type='toc',
                 href='toc-quiris.xhtml'
             )
-            try:
-                soup.xpath('//opf:guide',
-                           namespaces=OPFNS)[0].insert(0, newtocreference)
-            except IndexError:
-                newguide = etree.Element('{http://www.idpf.org/2007/opf}guide')
-                newguide.append(newtocreference)
-                soup.xpath('//opf:package',
-                           namespaces=OPFNS)[0].append(newguide)
+        try:
+            soup.xpath('//opf:guide',
+                       namespaces=OPFNS)[0].insert(0, newtocreference)
+        except IndexError:
+            newguide = etree.Element('{http://www.idpf.org/2007/opf}guide')
+            newguide.append(newtocreference)
+            soup.xpath('//opf:package',
+                       namespaces=OPFNS)[0].append(newguide)
 
-    with open(opf_file, "w") as f:
+    with open(opf_file, 'w') as f:
         f.write(etree.tostring(
             soup.getroot(),
             pretty_print=True,
             xml_declaration=True,
             encoding='utf-8'
         ))
+
+
+def set_cover_guide_ref(_xhtml_files, _itemcoverhref, _xhtml_file_paths,
+                        _soup):
+    cover_file = None
+    for xhtml_file in _xhtml_files:
+        xhtmltree = etree.parse(xhtml_file,
+                                parser=etree.XMLParser(recover=True))
+
+        allimgs = etree.XPath('//xhtml:img', namespaces=XHTMLNS)(xhtmltree)
+        for img in allimgs:
+            if img.get('src').find(_itemcoverhref) != -1:
+                cover_file = xhtml_file
+                break
+
+        allsvgimgs = etree.XPath('//svg:image', namespaces=SVGNS)(xhtmltree)
+        for svgimg in allsvgimgs:
+            if svgimg.get('{http://www.w3.org/1999/xlink}href').find(
+                itemcoverhref
+            ) != -1:
+                cover_file = xhtml_file
+                break
+    if cover_file is not None:
+        for xhtml_file_path in _xhtml_file_paths:
+            if xhtml_file_path.find(os.path.basename(cover_file)) != -1:
+                cover_file = xhtml_file_path
+                break
+        _newcoverreference = etree.Element(
+            'reference', title='Cover',
+            type="cover",   href=cover_file
+        )
+        try:
+            _soup.xpath('//opf:guide',
+                        namespaces=OPFNS)[0].insert(0, _newcoverreference)
+        except IndexError:
+            newguide = etree.Element('{http://www.idpf.org/2007/opf}guide')
+            newguide.append(_newcoverreference)
+            _soup.xpath('//opf:package',
+                        namespaces=OPFNS)[0].append(newguide)
+    return _soup
+
+
+def set_cover_meta_elem(_metacovers, _soup, _content):
+    _metadatas = etree.XPath('//opf:metadata', namespaces=OPFNS)(_soup)
+    if len(_metadatas) == 1 and len(_metacovers) == 0:
+        _newmeta = etree.Element('meta', name='cover', content=_content)
+        _metadatas[0].insert(0, _newmeta)
+    elif len(_metadatas) == 1 and len(_metacovers) == 1:
+        _metacovers[0].set('content', _content)
 
 
 def fix_various_opf_problems(source_file, tempdir, xhtml_files,
@@ -273,45 +325,10 @@ def fix_various_opf_problems(source_file, tempdir, xhtml_files,
         if verbose:
             print('Defining cover guide element...')
         itemcoverhref = os.path.basename(itemcovers[0].get('href'))
-        cover_file = None
-        for xhtml_file in xhtml_files:
-            xhtmltree = etree.parse(xhtml_file,
-                                    parser=etree.XMLParser(recover=True))
+        soup = set_cover_guide_ref(
+            xhtml_files, itemcoverhref, xhtml_file_paths, soup
+        )
 
-            allimgs = etree.XPath('//xhtml:img',
-                                  namespaces=XHTMLNS)(xhtmltree)
-            for img in allimgs:
-                if img.get('src').find(itemcoverhref) != -1:
-                    cover_file = xhtml_file
-                    break
-
-            allsvgimgs = etree.XPath('//svg:image',
-                                     namespaces=SVGNS)(xhtmltree)
-            for svgimg in allsvgimgs:
-                if svgimg.get('{http://www.w3.org/1999/xlink}href').find(
-                    itemcoverhref
-                ) != -1:
-                    cover_file = xhtml_file
-                    break
-        if cover_file is not None:
-            for xhtml_file_path in xhtml_file_paths:
-                if xhtml_file_path.find(
-                        os.path.basename(cover_file)
-                ) != -1:
-                    cover_file = xhtml_file_path
-                    break
-            newcoverreference = etree.Element(
-                'reference', title='Cover',
-                type="cover",   href=cover_file
-            )
-            soup.xpath('//opf:guide',
-                       namespaces=OPFNS)[0].insert(0, newcoverreference)
-            if verbose:
-                print('Cover guide element defined...')
-        else:
-            print('Unable to find html cover file. Probably '
-                  'different cover images for meta cover and '
-                  'html cover...')
     elif len(metacovers) == 0 and len(refcovers) == 1:
         # set missing cover meta element
         cover_image = None
@@ -338,17 +355,32 @@ def fix_various_opf_problems(source_file, tempdir, xhtml_files,
                 '"]', namespaces=OPFNS
             )(soup)
             if len(itemhrefcovers) == 1:
-                metadatas = etree.XPath('//opf:metadata',
-                                        namespaces=OPFNS)(soup)
+                set_cover_meta_elem(
+                    metacovers, soup, itemhrefcovers[0].get('id')
+                )
 
-                if len(metadatas) == 1 and len(metacovers) == 0:
-                    newmeta = etree.Element(
-                        'meta', name='cover',
-                        content=itemhrefcovers[0].get('id')
-                    )
-                    metadatas[0].insert(0, newmeta)
-                elif len(metadatas) == 1 and len(metacovers) == 1:
-                    metacovers[0].set('content', itemhrefcovers[0].get('id'))
+    elif len(metacovers) == 0 and len(refcovers) == 0 and args.findcover:
+        print('Force cover find...')
+        images = etree.XPath('//opf:item[@media-type="image/jpeg"]',
+                             namespaces=OPFNS)(soup)
+        cover_found = 0
+        if len(images) != 0:
+            for imag in images:
+                img_href_lower = imag.get('href').lower()
+                if (img_href_lower.find('cover') != -1 or
+                        img_href_lower.find('okladka') != -1):
+                    cover_found = 1
+                    print('Candidate image for cover found:' +
+                          ' href=' + imag.get('href') +
+                          ' id=' + imag.get('id'))
+                    break
+            if cover_found == 1:
+                soup = set_cover_guide_ref(
+                    xhtml_files, imag.get('href'), xhtml_file_paths, soup
+                )
+                set_cover_meta_elem(metacovers, soup, imag.get('id'))
+        else:
+            print('No images found...')
 
     # remove calibre staff
     for meta in soup.xpath("//opf:meta[starts-with(@name, 'calibre')]",
