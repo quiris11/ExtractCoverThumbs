@@ -24,11 +24,14 @@ def find_cover_image(_opftree, _file_dec):
     cover_found = 0
     if len(images) != 0:
         for imag in images:
-            if imag.get('href').find('cover') != -1:
+            img_href_lower = imag.get('href').lower()
+            if (img_href_lower.find('cover') != -1 or
+                    img_href_lower.find('okladka') != -1):
                 cover_found = 1
                 print(_file_dec + ': Candidate image for cover found:' +
                       ' href=' + imag.get('href') +
                       ' id=' + imag.get('id'))
+                break
         if cover_found == 0:
             print(_file_dec + ': No candidate cover images found. '
                   'Check a list of all images:')
