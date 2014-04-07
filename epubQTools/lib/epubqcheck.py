@@ -213,14 +213,11 @@ def qcheck(_documents, _moded, _validator):
         for _file in files:
             file_dec = _file.decode(sys.getfilesystemencoding())
             if _file.endswith(fe) and not _file.endswith(nfe):
-                print('')
-                print('')
                 epubfile = zipfile.ZipFile(os.path.join(root, _file))
                 for singlefile in epubfile.namelist():
                     if singlefile.find('.opf') > 0:
                         qcheck_single_file(singlefile, epubfile, file_dec)
 
-                print('')
                 if _validator:
                     _epubchecker_path = os.path.join(
                         os.path.dirname(__file__), os.pardir, 'resources',
