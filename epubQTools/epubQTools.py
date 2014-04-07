@@ -303,9 +303,10 @@ def force_cover_find(_soup):
             if (img_href_lower.find('cover') != -1 or
                     img_href_lower.find('okladka') != -1):
                 cover_found = 1
-                print('Candidate image for cover found:' +
-                      ' href=' + imag.get('href') +
-                      ' id=' + imag.get('id'))
+                if verbose:
+                    print('Candidate image for cover found:' +
+                          ' href=' + imag.get('href') +
+                          ' id=' + imag.get('id'))
                 return imag.get('href'), imag.get('id')
                 break
     if cover_found == 0:
@@ -585,6 +586,9 @@ def main():
                             c = content_file.read()
                             c = c.replace('&shy;', '')
                             c = c.replace('&nbsp;', ' ')
+                            c = c.replace('&ensp;', ' ')
+                            c = c.replace('&ndash;', '–')
+                            c = c.replace('&copy;', '©')
                         _xhtmltree = etree.fromstring(
                             c, parser=etree.XMLParser(recover=False)
                         )
