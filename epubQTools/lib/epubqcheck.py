@@ -194,7 +194,7 @@ def qcheck_single_file(_singlefile, _epubfile, _file_dec):
         namespaces={'dc': 'http://purl.org/dc/elements/1.1/',
                     'opf': 'http://www.idpf.org/2007/opf'}
     ):
-        print(_file_dec + ': calibre staff found')
+        print(_file_dec + ': other calibre staff found')
         break
 
 
