@@ -292,7 +292,8 @@ def set_cover_meta_elem(_metacovers, _soup, _content):
 
 
 def force_cover_find(_soup):
-    print('Force cover find...')
+    if verbose:
+        print('Force cover find...')
     images = etree.XPath('//opf:item[@media-type="image/jpeg"]',
                          namespaces=OPFNS)(_soup)
     cover_found = 0
@@ -311,9 +312,23 @@ def force_cover_find(_soup):
         return None, None
 
 
+def set_correct_font_mime_types(_soup):
+    if verbose:
+        print('Setting correct font mime types...')
+    _items = etree.XPath('//opf:item[@href]', namespaces=OPFNS)(_soup)
+    for _item in _items:
+        if _item.get('href').endswith('.otf'):
+            _item.set('media-type', 'application/vnd.ms-opentype')
+        elif _item.get('href').endswith('.ttf'):
+            _item.set('media-type', 'application/x-font-truetype')
+    return _soup
+
+
 def fix_various_opf_problems(source_file, tempdir, xhtml_files,
                              xhtml_file_paths):
     soup = etree.parse(source_file)
+
+    soup = set_correct_font_mime_types(soup)
 
     # remove multiple dc:language
     lang_counter = 0
