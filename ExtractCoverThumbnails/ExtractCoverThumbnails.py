@@ -125,10 +125,9 @@ for _file in _dir_content:
             try:
                 _doctype = re.search('name="Document Type".+content="(.+?)"',
                                      _opf_content).group(1)
-                print _doctype
             except AttributeError:
                 _doctype = 'PDOC'
             find_and_copy_cover_file(_opf_content, _asin_found,
-                                         _tempdir, _kindle_path, _doctype)
+                                     _tempdir, _kindle_path, _doctype)
         if os.path.isdir(_tempdir):
             shutil.rmtree(_tempdir)
