@@ -82,7 +82,7 @@ for _file in _dir_content:
             'thumbnail_' + _asin_found + '_PDOC_portrait.jpg'
         )) and not os.path.isfile(os.path.join(
             _kindle_path, 'system', 'thumbnails',
-            'thumbnail_' + _asin.group(1) + '_EBOK_portrait.jpg'
+            'thumbnail_' + _asin_found + '_EBOK_portrait.jpg'
         )):
             print("No cover found for current file. Trying to fix it...")
             _tempdir = unpack_mobi_file(_documents, _file)
@@ -127,7 +127,13 @@ for _file in _dir_content:
                                      _opf_content).group(1)
             except AttributeError:
                 _doctype = 'PDOC'
-            find_and_copy_cover_file(_opf_content, _asin_found,
-                                     _tempdir, _kindle_path, _doctype)
+            if not os.path.isfile(os.path.join(
+                _kindle_path, 'system', 'thumbnails',
+                'thumbnail_' + _asin_found + '_' + _doctype + '_portrait.jpg'
+            )):
+                find_and_copy_cover_file(_opf_content, _asin_found,
+                                         _tempdir, _kindle_path, _doctype)
+            else:
+                print('Cover thumbnail for current file exists. Skipping...')
         if os.path.isdir(_tempdir):
             shutil.rmtree(_tempdir)
