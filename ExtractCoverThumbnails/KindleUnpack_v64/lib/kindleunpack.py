@@ -94,7 +94,7 @@ SPLIT_COMBO_MOBIS = False
 PROC_K8RESC = True
 """ Process K8 RESC section. """
 
-CREATE_COVER_PAGE = True # XXX experimental
+CREATE_COVER_PAGE = False # XXX experimental
 """ Create and insert a cover xhtml page. """
 
 EOF_RECORD = chr(0xe9) + chr(0x8e) + "\r\n"
