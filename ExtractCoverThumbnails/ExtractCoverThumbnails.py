@@ -26,8 +26,6 @@ parser.add_argument("kindle_directory", help="directory where is a Kindle"
 args = parser.parse_args()
 
 _kindle_path = args.kindle_directory
-_kindle_unpack = os.path.join(os.getcwd(), 'KindleUnpack_v64',
-                              'lib', 'kindleunpack.py')
 _documents = os.path.join(_kindle_path, 'documents')
 
 
