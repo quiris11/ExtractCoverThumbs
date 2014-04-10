@@ -25,8 +25,8 @@ if not hasattr(sys, 'frozen'):
     _hyph = Hyphenator(os.path.join(os.path.dirname(__file__), 'resources',
                        'dictionaries', 'hyph_pl_PL.dic'))
 else:
-    _hyph = Hyphenator(os.path.join(os.getcwd(), 'resources',
-                       'dictionaries', 'hyph_pl_PL.dic'))
+    _hyph = Hyphenator(os.path.join(os.path.dirname(sys.executable),
+                       'resources', 'dictionaries', 'hyph_pl_PL.dic'))
 
 DTD = ('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" '
        '"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">')
@@ -194,7 +194,8 @@ def fix_html_toc(opf_file, tempdir, xhtml_files, xhtml_file_paths):
                 )))
             else:
                 transform = etree.XSLT(etree.parse(os.path.join(
-                    os.getcwd(), 'resources', 'ncx2end-0.2.xsl'
+                    os.path.dirname(sys.executable), 'resources',
+                    'ncx2end-0.2.xsl'
                 )))
             toc_ncx_file = etree.XPath(
                 '//opf:item[@media-type="application/x-dtbncx+xml"]',
