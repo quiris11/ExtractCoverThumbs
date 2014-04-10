@@ -16,8 +16,9 @@ import re
 import shutil
 import tempfile
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'KindleUnpack_v64',
-                'lib'))
+if not hasattr(sys, 'frozen'):
+    sys.path.append(os.path.join(os.path.dirname(__file__),
+                    'KindleUnpack_v64', 'lib'))
 import kindleunpack
 
 parser = argparse.ArgumentParser()
@@ -69,7 +70,8 @@ except:
 for _file in _dir_content:
     if _file.endswith('.azw3') or _file.endswith('.azw'):
         print('')
-        print('Processing file ' + _file + '...')
+        print('Processing file ' + _file.decode(sys.getfilesystemencoding()) +
+              '...')
         try:
             _asin_found = re.search('.+_([A-Z0-9]+?)\..+', _file).group(1)
         except AttributeError:
@@ -83,7 +85,9 @@ for _file in _dir_content:
             'thumbnail_' + _asin_found + '_EBOK_portrait.jpg'
         )):
             print("No cover found for current file. Trying to fix it...")
-            _tempdir = unpack_mobi_file(_documents, _file)
+            _tempdir = unpack_mobi_file(
+                _documents, _file.decode(sys.getfilesystemencoding())
+            )
             if _file.endswith('.azw3'):
                 _opf = os.path.join(_tempdir, 'mobi8', 'OEBPS', 'content.opf')
             else:
@@ -106,8 +110,11 @@ for _file in _dir_content:
             print('Cover thumbnail for current file exists. Skipping...')
     elif _file.endswith('.mobi'):
         print('')
-        print('Processing file ' + _file + '...')
-        _tempdir = unpack_mobi_file(_documents, _file)
+        print('Processing file ' + _file.decode(sys.getfilesystemencoding()) +
+              '...')
+        _tempdir = unpack_mobi_file(
+            _documents, _file.decode(sys.getfilesystemencoding())
+        )
         _opf = os.path.join(_tempdir, 'mobi7',
                             os.path.splitext(_file)[0] + '.opf')
         with open(_opf, 'r') as f:
@@ -117,6 +124,7 @@ for _file in _dir_content:
                                         _opf_content).group(1)
             except AttributeError:
                 print('No ASIN found in a current file. Skipping...')
+                f.close()
                 if os.path.isdir(_tempdir):
                     shutil.rmtree(_tempdir)
                 continue
