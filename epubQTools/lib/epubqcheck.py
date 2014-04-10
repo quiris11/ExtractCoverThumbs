@@ -223,9 +223,13 @@ def qcheck(_documents, _moded, _validator):
                         os.path.dirname(__file__), os.pardir, 'resources',
                         'epubcheck-3.0.1', 'epubcheck-3.0.1.jar'
                     )
-                    print('***** Validating: ' + str(_file) + ' *****')
+                    print('*** EpubCheck 3.0.1 *** begin of validating '
+                          'file: ' + file_dec)
                     subprocess.call(['java', '-jar', '%s' % _epubchecker_path,
                                     '%s' % str(os.path.join(root, _file))])
+                    print('*** EpubCheck 3.0.1 *** end of validating '
+                          'file: ' + file_dec)
+                    print('')
 
 
 if __name__ == "__main__":

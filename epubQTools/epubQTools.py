@@ -14,15 +14,19 @@ import subprocess
 import sys
 import zipfile
 from lxml import etree
-
-sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
+if not hasattr(sys, 'frozen'):
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'lib'))
 from hyphenator import Hyphenator
 from epubqcheck import qcheck
 
 _my_language = 'pl'
 _hyphen_mark = u'\u00AD'
-_hyph = Hyphenator(os.path.join(os.path.dirname(__file__), 'resources',
-                   'dictionaries', 'hyph_pl_PL.dic'))
+if not hasattr(sys, 'frozen'):
+    _hyph = Hyphenator(os.path.join(os.path.dirname(__file__), 'resources',
+                       'dictionaries', 'hyph_pl_PL.dic'))
+else:
+    _hyph = Hyphenator(os.path.join(os.getcwd(), 'resources',
+                       'dictionaries', 'hyph_pl_PL.dic'))
 
 DTD = ('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" '
        '"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">')
@@ -184,9 +188,14 @@ def fix_html_toc(opf_file, tempdir, xhtml_files, xhtml_file_paths):
             )
         else:
             parser = etree.XMLParser(remove_blank_text=True)
-            transform = etree.XSLT(etree.parse(os.path.join(
-                os.path.dirname(__file__), 'resources', 'ncx2end-0.2.xsl'
-            )))
+            if not hasattr(sys, 'frozen'):
+                transform = etree.XSLT(etree.parse(os.path.join(
+                    os.path.dirname(__file__), 'resources', 'ncx2end-0.2.xsl'
+                )))
+            else:
+                transform = etree.XSLT(etree.parse(os.path.join(
+                    os.getcwd(), 'resources', 'ncx2end-0.2.xsl'
+                )))
             toc_ncx_file = etree.XPath(
                 '//opf:item[@media-type="application/x-dtbncx+xml"]',
                 namespaces=OPFNS
@@ -518,15 +527,21 @@ def main():
                         if os.path.isfile(os.path.join(root, newmobifile)):
                             print(
                                 'Skipping previously generated _moh file: ' +
-                                newmobifile
+                                newmobifile.decode(sys.getfilesystemencoding())
                             )
                             continue
                     print('')
                     print('Kindlegen: Converting file: ' +
                           _file.decode(sys.getfilesystemencoding()))
-                    retcode = subprocess.call(['kindlegen', compression,
-                                              os.path.join(root, _file)],
-                                              **kwargs)
+                    try:
+                        retcode = subprocess.call([
+                            'kindlegen', compression,
+                            os.path.join(root, _file)
+                        ], **kwargs)
+                    except:
+                        print('Something wrong with kindlegen. '
+                              'Probably unable to run it...')
+                        continue
                     if retcode == 1:
                         print('MOBI file built with WARNINGS!')
                     elif retcode == 2:
@@ -547,7 +562,7 @@ def main():
                         if os.path.isfile(os.path.join(root, _newfile)):
                             print(
                                 'Skipping previously generated _moh file: ' +
-                                _newfile
+                                _newfile.decode(sys.getfilesystemencoding())
                             )
                             continue
 
