@@ -516,11 +516,6 @@ def main():
     elif args.kindlegen:
         compression = '-c2' if args.huffdic else '-c1'
         for root, dirs, files in os.walk(_documents):
-            if verbose:
-                kwargs = {}
-            else:
-                devnull = open(os.devnull, 'w')
-                kwargs = {'stdout': devnull, 'stderr': devnull}
             for _file in files:
                 if _file.endswith('_moh.epub'):
                     newmobifile = os.path.splitext(_file)[0] + '.mobi'
@@ -534,21 +529,25 @@ def main():
                     print('')
                     print('Kindlegen: Converting file: ' +
                           _file.decode(sys.getfilesystemencoding()))
-                    try:
-                        retcode = subprocess.call([
-                            'kindlegen', compression,
-                            os.path.join(root, _file)
-                        ], **kwargs)
-                    except:
-                        print('Something wrong with kindlegen. '
-                              'Probably unable to run it...')
-                        continue
-                    if retcode == 1:
-                        print('MOBI file built with WARNINGS!')
-                    elif retcode == 2:
-                        print('ERROR! Building MOBI file process aborted!')
-                    elif retcode == 0:
-                        print('MOBI file built successfully.')
+                    proc = subprocess.Popen([
+                        'kindlegen', compression, os.path.join(root, _file)
+                    ], stdout=subprocess.PIPE).communicate()[0]
+
+                    cover_html_found = False
+                    for ln in proc.splitlines():
+                        if ln.find('Warning') != -1:
+                            print ln
+                        if ln.find('Error') != -1:
+                            print ln
+                        if ln.find('I1052') != -1:
+                            cover_html_found = True
+                    if not cover_html_found:
+                        print('')
+                        print(
+                            'WARNING: Probably duplicated covers '
+                            'generated in file: ' +
+                            newmobifile.decode(sys.getfilesystemencoding())
+                        )
 
     elif args.epub:
         for root, dirs, files in os.walk(_documents):
