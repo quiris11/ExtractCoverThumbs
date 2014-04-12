@@ -16,6 +16,47 @@ OPFNS = {'opf': 'http://www.idpf.org/2007/opf'}
 XHTMLNS = {'xhtml': 'http://www.w3.org/1999/xhtml'}
 DCNS = {'dc': 'http://purl.org/dc/elements/1.1/'}
 NCXNS = {'ncx': 'http://www.daisy.org/z3986/2005/ncx/'}
+SVGNS = {'svg': 'http://www.w3.org/2000/svg'}
+
+
+def check_meta_html_covers(tree, dir, epub, file_dec):
+    html_cover_path = etree.XPath('//opf:reference[@type="cover"]',
+                                  namespaces=OPFNS)(tree)[0].get('href')
+    try:
+        meta_cover_id = etree.XPath('//opf:meta[@name="cover"]',
+                                    namespaces=OPFNS)(tree)[0].get('content')
+    except IndexError:
+        print(file_dec + ': No meta cover image defined.')
+        return 0
+    try:
+        meta_cover_path = etree.XPath(
+            '//opf:item[@id="' + meta_cover_id + '"]',
+            namespaces=OPFNS
+        )(tree)[0].get('href')
+    except IndexError:
+        print(file_dec + ': Meta cover does not properly defined.')
+        return 0
+    parser = etree.XMLParser(recover=True)
+    html_cover_tree = etree.fromstring(
+        epub.read(dir + html_cover_path), parser
+    )
+    if html_cover_tree is None:
+        print 'Error loading HTML cover... Probably not a html file...'
+        return 0
+    allimgs = etree.XPath('//xhtml:img', namespaces=XHTMLNS)(html_cover_tree)
+    if len(allimgs) > 1:
+        print file_dec + ': Too many cover images...'
+    for img in allimgs:
+        if img.get('src').find(meta_cover_path) == -1:
+            print(file_dec + ': Meta cover and HTML cover mismatched.')
+    allsvgimgs = etree.XPath('//svg:image', namespaces=SVGNS)(html_cover_tree)
+    if len(allimgs) > 1:
+        print file_dec + ': Too many cover images...'
+    for svgimg in allsvgimgs:
+        if svgimg.get('{http://www.w3.org/1999/xlink}href').find(
+                meta_cover_path
+        ) == -1:
+            print(file_dec + ': Meta cover and HTML cover mismatched.')
 
 
 def find_cover_image(_opftree, _file_dec):
@@ -61,14 +102,8 @@ def qcheck_single_file(_singlefile, _epubfile, _file_dec):
 
     _metacovers = etree.XPath('//opf:meta[@name="cover"]',
                               namespaces=OPFNS)(opftree)
-    if len(_metacovers) == 0:
-        print(_file_dec + ': No meta cover image defined.')
-    elif len(_metacovers) > 1:
+    if len(_metacovers) > 1:
         print(_file_dec + ': Multiple meta cover images defined.')
-    else:
-        if len(etree.XPath('//opf:item[@id="' + _metacovers[0].get('content') +
-                           '"]', namespaces=OPFNS)(opftree)) == 0:
-            print(_file_dec + ': Meta cover DOES NOT properly defined.')
 
     _references = etree.XPath('//opf:reference', namespaces=OPFNS)(opftree)
     _refcovcount = _reftoccount = _reftextcount = 0
@@ -97,6 +132,9 @@ def qcheck_single_file(_singlefile, _epubfile, _file_dec):
 
     if len(_metacovers) == 0 and _refcovcount == 0:
         find_cover_image(opftree, _file_dec)
+
+    if _refcovcount == 1 and len(_metacovers) == 1:
+        check_meta_html_covers(opftree, _folder, _epubfile, _file_dec)
 
     _htmlfiletags = etree.XPath(
         '//opf:item[@media-type="application/xhtml+xml"]', namespaces=OPFNS
