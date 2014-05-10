@@ -71,8 +71,12 @@ except:
 for _file in _dir_content:
     if _file.endswith('.azw3') or _file.endswith('.azw'):
         print('')
-        print('Processing file ' + _file.decode(sys.getfilesystemencoding()) +
-              '...')
+        try:
+            print('Processing file ' +
+                  _file.decode(sys.getfilesystemencoding()) + '...')
+        except:
+            print('Processing file ' +
+                  repr(_file.decode(sys.getfilesystemencoding())) + '...')
         try:
             _asin_found = re.search('.+_([A-Z0-9]+?)\..+', _file).group(1)
         except AttributeError:
