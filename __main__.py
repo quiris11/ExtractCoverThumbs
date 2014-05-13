@@ -86,13 +86,13 @@ def get_cover_image(file, doctype):
             imgnames.append(i)
         if len(imgnames)-1 == int(cover_offset):
             cover = Image.open(BytesIO(data))
-            im_h = 300 if doctype == 'PDOC' else 330
+            im_h = 287 if doctype == 'PDOC' else 330
             print(im_h)
             cover.thumbnail((217, im_h), Image.ANTIALIAS)
             cover = cover.convert('L')
             if doctype == 'PDOC':
                 size = cover.size
-                pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+30),
+                pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+43),
                                        "white")
                 pdoc_cover.paste(cover, (0, 0))
                 return pdoc_cover
