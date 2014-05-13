@@ -87,7 +87,6 @@ def get_cover_image(file, doctype):
         if len(imgnames)-1 == int(cover_offset):
             cover = Image.open(BytesIO(data))
             im_h = 287 if doctype == 'PDOC' else 330
-            print(im_h)
             cover.thumbnail((217, im_h), Image.ANTIALIAS)
             cover = cover.convert('L')
             if doctype == 'PDOC':
