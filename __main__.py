@@ -25,6 +25,8 @@ parser.add_argument("kindle_directory", help="directory where is a Kindle"
                     " Paperwhite mounted")
 parser.add_argument("-v", "--verbose", help="print more informations",
                     action="store_true")
+parser.add_argument("-o", "--overwrite", help="overwrite thumbnails",
+                    action="store_true")
 args = parser.parse_args()
 
 kindlepth = args.kindle_directory
@@ -86,12 +88,11 @@ def get_cover_image(file, doctype):
             imgnames.append(i)
         if len(imgnames)-1 == int(cover_offset):
             cover = Image.open(BytesIO(data))
-            im_h = 287 if doctype == 'PDOC' else 330
-            cover.thumbnail((217, im_h), Image.ANTIALIAS)
+            cover.thumbnail((220, 330), Image.ANTIALIAS)
             cover = cover.convert('L')
             if doctype == 'PDOC':
                 size = cover.size
-                pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+43),
+                pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+45),
                                        "white")
                 pdoc_cover.paste(cover, (0, 0))
                 return pdoc_cover
@@ -134,7 +135,7 @@ def main():
                 kindlepth, 'system', 'thumbnails',
                 'thumbnail_%s_%s_portrait.jpg' % (asin, doctype)
             )
-            if not os.path.isfile(thumbpath):
+            if not os.path.isfile(thumbpath) or args.overwrite:
                 if args.verbose:
                     print('No cover found for current file. Trying to fix'
                           ' it...')
