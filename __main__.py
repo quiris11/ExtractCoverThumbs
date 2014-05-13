@@ -92,40 +92,54 @@ def get_cover_image(file):
     return False
 
 
-try:
-    dir_list = os.listdir(docs)
-except:
-    sys.exit('No Kindle device found in a specified directory: ' + kindlepth)
-for f in dir_list:
-    if f.lower().endswith(('.azw3', '.azw', '.mobi')):
-        fide = f.decode(sys.getfilesystemencoding())
-        mobi_path = os.path.join(docs, f)
-        if args.verbose:
-            try:
-                print('Processing "%s":' % fide, end=' ')
-            except:
-                print('Processing %r:' % fide, end=' ')
-        with open(mobi_path, 'rb') as mf:
-            mobi_content = mf.read()
-            if mobi_content[60:68] != 'BOOKMOBI':
-                print('* ERROR! INVALID format of file "%s". Skipping...'
-                      % fide)
-                continue
-        asin = find_header(113, mobi_path)
-        doctype = find_header(501, mobi_path)
-        if asin is None:
-            print('No ASIN found in a current file. Skipping...')
-            continue
-        thumbpath = os.path.join(
-            kindlepth, 'system', 'thumbnails',
-            'thumbnail_%s_%s_portrait.jpg' % (asin, doctype)
-        )
-        if not os.path.isfile(thumbpath):
+def main():
+    if not args.verbose:
+        print("START of extracting cover thumbnails...")
+    try:
+        dir_list = os.listdir(docs)
+    except:
+        print('* ERROR! No Kindle device found in a specified directory: ' +
+              kindlepth)
+        print("FINISH of extracting cover thumbnails...")
+        return 0
+    for f in dir_list:
+        if f.lower().endswith(('.azw3', '.azw', '.mobi')):
+            fide = f.decode(sys.getfilesystemencoding())
+            mobi_path = os.path.join(docs, f)
             if args.verbose:
-                print("No cover found for current file. Trying to fix it...")
-            cover = get_cover_image(mobi_path)
-            if not cover:
+                try:
+                    print('Processing "%s":' % fide, end=' ')
+                except:
+                    print('Processing %r:' % fide, end=' ')
+            with open(mobi_path, 'rb') as mf:
+                mobi_content = mf.read()
+                if mobi_content[60:68] != 'BOOKMOBI':
+                    print('* ERROR! INVALID format of file "%s". Skipping...'
+                          % fide)
+                    continue
+            asin = find_header(113, mobi_path)
+            doctype = find_header(501, mobi_path)
+            if asin is None:
+                print('No ASIN found in a current file. Skipping...')
                 continue
-            cover.save(thumbpath)
-        elif args.verbose:
-            print('Cover thumbnail for current file exists. Skipping...')
+            thumbpath = os.path.join(
+                kindlepth, 'system', 'thumbnails',
+                'thumbnail_%s_%s_portrait.jpg' % (asin, doctype)
+            )
+            if not os.path.isfile(thumbpath):
+                if args.verbose:
+                    print('No cover found for current file. Trying to fix'
+                          ' it...')
+                cover = get_cover_image(mobi_path)
+                if not cover:
+                    continue
+                cover.save(thumbpath)
+            elif args.verbose:
+                print('Cover thumbnail for current file exists. Skipping...')
+    if not args.verbose:
+        print("FINISH of extracting cover thumbnails...")
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
