@@ -10,141 +10,122 @@
 # to your Kindle Paperwhite.
 #
 
+from __future__ import print_function
 import argparse
 import sys
 import os
 import re
-import shutil
-import tempfile
-
-if not hasattr(sys, 'frozen'):
-    sys.path.append(os.path.join(os.path.dirname(__file__),
-                    'KindleUnpack_v64', 'lib'))
-import kindleunpack
+from imghdr import what
+from io import BytesIO
+from PIL import Image
+import KindleUnpack
 
 parser = argparse.ArgumentParser()
 parser.add_argument("kindle_directory", help="directory where is a Kindle"
                     " Paperwhite mounted")
+parser.add_argument("-v", "--verbose", help="print more informations",
+                    action="store_true")
 args = parser.parse_args()
 
-_kindle_path = args.kindle_directory
-_documents = os.path.join(_kindle_path, 'documents')
+kindlepth = args.kindle_directory
+docs = os.path.join(kindlepth, 'documents')
 
 
-class NullDevice():
-    def write(self, s):
-        pass
+def find_header(search_id, mobi_file):
+    import struct
+    with open(os.path.join(mobi_file), 'rb') as f:
+        content = f.read()
+    exth_begin = content.find('EXTH')
+    exth_header = content[exth_begin:]
+    count_items, = struct.unpack('>L', exth_header[8:12])
+    pos = 12
+    for _ in range(count_items):
+        id, size = struct.unpack('>LL', exth_header[pos:pos+8])
+        exth_record = exth_header[pos + 8: pos + size]
+        if id == search_id:
+            return exth_record.decode('utf-8')
+        pos += size
 
 
-def unpack_mobi_file(documents, file):
-    tempdir = tempfile.mkdtemp()
-    original_stdout = sys.stdout  # keep a reference to STDOUT
-    sys.stdout = NullDevice()  # redirect the real STDOUT
-    with open(os.devnull, 'wb') as devnull:
-        kindleunpack.unpackBook(os.path.join(documents, file),
-                                tempdir)
-    sys.stdout = original_stdout  # turn STDOUT back on
-    return tempdir
+# get_cover_image based on Pawel Jastrzebski <pawelj@vulturis.eu> work:
+# https://github.com/AcidWeb/KindleButler/blob/master/KindleButler/File.py
+def get_cover_image(file):
+    section = KindleUnpack.Sectionizer(file)
+    mhlst = [KindleUnpack.MobiHeader(section, 0)]
+    mh = mhlst[0]
+    metadata = mh.getmetadata()
+    try:
+        cover_offset = metadata['CoverOffset'][0]
+    except KeyError:
+        print('* ERROR! Cover does NOT defined in "%s". Skipping...'
+              % os.path.basename(file))
+        return False
+    beg = mh.firstresource
+    end = section.num_sections
+    imgnames = []
+    for i in range(beg, end):
+        data = section.load_section(i)
+        tmptype = data[0:4]
+        if tmptype in ["FLIS", "FCIS", "FDST", "DATP", "SRCS", "CMET",
+                       "FONT", "RESC"]:
+            imgnames.append(None)
+            continue
+        if data == chr(0xe9) + chr(0x8e) + "\r\n":
+            imgnames.append(None)
+            continue
+        imgtype = what(None, data)
+        if imgtype is None and data[0:2] == b'\xFF\xD8':
+            last = len(data)
+            while data[last-1:last] == b'\x00':
+                last -= 1
+            if data[last-2:last] == b'\xFF\xD9':
+                imgtype = "jpeg"
+        if imgtype is None:
+            imgnames.append(None)
+        else:
+            imgnames.append(i)
+        if len(imgnames)-1 == int(cover_offset):
+            cover = Image.open(BytesIO(data))
+            cover.thumbnail((217, 330), Image.ANTIALIAS)
+            cover = cover.convert('L')
+            return cover
+    return False
 
-
-def find_and_copy_cover_file(opfcontent, asin, tempdir, kindlepath, doctype):
-    _thumb_file = re.search('.+properties="cover-image".+href="(.+)\/(.+)".+',
-                            opfcontent)
-    if _thumb_file:
-        shutil.move(os.path.join(
-            tempdir, 'mobi7', _thumb_file.group(1),
-            _thumb_file.group(2)),
-            os.path.join(
-                kindlepath, 'system', 'thumbnails',
-                'thumbnail_' + asin + '_' + doctype + '_portrait.jpg'
-            )
-        )
-        print('Cover thumbnail copied to your device...')
-    else:
-        print('Cover image not found. Skipping...')
 
 try:
-    _dir_content = os.listdir(_documents)
+    dir_list = os.listdir(docs)
 except:
-    sys.exit('No Kindle device found in a specified directory'
-             ': ' + _kindle_path)
-for _file in _dir_content:
-    if _file.endswith('.azw3') or _file.endswith('.azw'):
-        print('')
-        try:
-            print('Processing file ' +
-                  _file.decode(sys.getfilesystemencoding()) + '...')
-        except:
-            print('Processing file ' +
-                  repr(_file.decode(sys.getfilesystemencoding())) + '...')
-        try:
-            _asin_found = re.search('.+_([A-Z0-9]+?)\..+', _file).group(1)
-        except AttributeError:
+    sys.exit('No Kindle device found in a specified directory: ' + kindlepth)
+for f in dir_list:
+    if f.lower().endswith(('.azw3', '.azw', '.mobi')):
+        fide = f.decode(sys.getfilesystemencoding())
+        mobi_path = os.path.join(docs, f)
+        if args.verbose:
+            try:
+                print('Processing "%s":' % fide, end=' ')
+            except:
+                print('Processing %r:' % fide, end=' ')
+        with open(mobi_path, 'rb') as mf:
+            mobi_content = mf.read()
+            if mobi_content[60:68] != 'BOOKMOBI':
+                print('* ERROR! INVALID format of file "%s". Skipping...'
+                      % fide)
+                continue
+        asin = find_header(113, mobi_path)
+        doctype = find_header(501, mobi_path)
+        if asin is None:
             print('No ASIN found in a current file. Skipping...')
             continue
-        if not os.path.isfile(os.path.join(
-            _kindle_path, 'system', 'thumbnails',
-            'thumbnail_' + _asin_found + '_PDOC_portrait.jpg'
-        )) and not os.path.isfile(os.path.join(
-            _kindle_path, 'system', 'thumbnails',
-            'thumbnail_' + _asin_found + '_EBOK_portrait.jpg'
-        )):
-            print("No cover found for current file. Trying to fix it...")
-            _tempdir = unpack_mobi_file(
-                _documents, _file.decode(sys.getfilesystemencoding())
-            )
-            if _file.endswith('.azw3'):
-                _opf = os.path.join(_tempdir, 'mobi8', 'OEBPS', 'content.opf')
-            else:
-                _opf = os.path.join(_tempdir, 'mobi7',
-                                    os.path.splitext(_file)[0] + '.opf')
-            with open(_opf, 'r') as f:
-                _opf_content = f.read()
-                try:
-                    _doctype = re.search(
-                        'name="Document Type".+content="(.+?)"',
-                        _opf_content
-                    ).group(1)
-                except AttributeError:
-                    _doctype = 'PDOC'
-                find_and_copy_cover_file(_opf_content, _asin_found,
-                                         _tempdir, _kindle_path, _doctype)
-            if os.path.isdir(_tempdir):
-                shutil.rmtree(_tempdir)
-        else:
-            print('Cover thumbnail for current file exists. Skipping...')
-    elif _file.endswith('.mobi'):
-        print('')
-        print('Processing file ' + _file.decode(sys.getfilesystemencoding()) +
-              '...')
-        _tempdir = unpack_mobi_file(
-            _documents, _file.decode(sys.getfilesystemencoding())
+        thumbpath = os.path.join(
+            kindlepth, 'system', 'thumbnails',
+            'thumbnail_%s_%s_portrait.jpg' % (asin, doctype)
         )
-        _opf = os.path.join(_tempdir, 'mobi7',
-                            os.path.splitext(_file)[0] + '.opf')
-        with open(_opf, 'r') as f:
-            _opf_content = f.read()
-            try:
-                _asin_found = re.search('name="ASIN".+content="(.+?)"',
-                                        _opf_content).group(1)
-            except AttributeError:
-                print('No ASIN found in a current file. Skipping...')
-                f.close()
-                if os.path.isdir(_tempdir):
-                    shutil.rmtree(_tempdir)
+        if not os.path.isfile(thumbpath):
+            if args.verbose:
+                print("No cover found for current file. Trying to fix it...")
+            cover = get_cover_image(mobi_path)
+            if not cover:
                 continue
-            try:
-                _doctype = re.search('name="Document Type".+content="(.+?)"',
-                                     _opf_content).group(1)
-            except AttributeError:
-                _doctype = 'PDOC'
-            if not os.path.isfile(os.path.join(
-                _kindle_path, 'system', 'thumbnails',
-                'thumbnail_' + _asin_found + '_' + _doctype + '_portrait.jpg'
-            )):
-                find_and_copy_cover_file(_opf_content, _asin_found,
-                                         _tempdir, _kindle_path, _doctype)
-            else:
-                print('Cover thumbnail for current file exists. Skipping...')
-        if os.path.isdir(_tempdir):
-            shutil.rmtree(_tempdir)
+            cover.save(thumbpath)
+        elif args.verbose:
+            print('Cover thumbnail for current file exists. Skipping...')
