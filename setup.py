@@ -1,10 +1,6 @@
 from distutils.core import setup
 import py2exe
 import sys
-import os
-
-sys.path.append(os.path.join(os.path.dirname(__file__), 'KindleUnpack_v64',
-                'lib'))
 
 sys.argv.append('py2exe')
 setup(
@@ -21,5 +17,5 @@ setup(
         }
     },
     zipfile=None,
-    console=['ExtractCoverThumbs.py'],
+    console=[{'script': '__main__.py', 'dest_base': 'ExtractCoverThumbs'}],
 )
