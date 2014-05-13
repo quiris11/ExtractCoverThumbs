@@ -49,7 +49,7 @@ def find_header(search_id, mobi_file):
 
 # get_cover_image based on Pawel Jastrzebski <pawelj@vulturis.eu> work:
 # https://github.com/AcidWeb/KindleButler/blob/master/KindleButler/File.py
-def get_cover_image(file):
+def get_cover_image(file, doctype):
     section = KindleUnpack.Sectionizer(file)
     mhlst = [KindleUnpack.MobiHeader(section, 0)]
     mh = mhlst[0]
@@ -86,9 +86,18 @@ def get_cover_image(file):
             imgnames.append(i)
         if len(imgnames)-1 == int(cover_offset):
             cover = Image.open(BytesIO(data))
-            cover.thumbnail((217, 330), Image.ANTIALIAS)
+            im_h = 300 if doctype == 'PDOC' else 330
+            print(im_h)
+            cover.thumbnail((217, im_h), Image.ANTIALIAS)
             cover = cover.convert('L')
-            return cover
+            if doctype == 'PDOC':
+                size = cover.size
+                pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+30),
+                                       "white")
+                pdoc_cover.paste(cover, (0, 0))
+                return pdoc_cover
+            else:
+                return cover
     return False
 
 
@@ -130,7 +139,7 @@ def main():
                 if args.verbose:
                     print('No cover found for current file. Trying to fix'
                           ' it...')
-                cover = get_cover_image(mobi_path)
+                cover = get_cover_image(mobi_path, doctype)
                 if not cover:
                     continue
                 cover.save(thumbpath)
