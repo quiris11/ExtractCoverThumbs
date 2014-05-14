@@ -15,10 +15,14 @@ import argparse
 import sys
 import os
 import re
+import KindleUnpack
 from imghdr import what
 from io import BytesIO
-from PIL import Image
-import KindleUnpack
+
+try:
+    from PIL import Image
+except ImportError:
+    sys.exit('ERROR! Python Imaging Library (PIL) or Pillow not installed.')
 
 parser = argparse.ArgumentParser()
 parser.add_argument("kindle_directory", help="directory where is a Kindle"
