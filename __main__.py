@@ -112,7 +112,7 @@ def main():
         print("FINISH of extracting cover thumbnails...")
         return 0
     for f in dir_list:
-        if f.lower().endswith(('.azw3', '.azw', '.mobi')):
+        if f.lower().endswith(('.azw3', '.mobi')):
             fide = f.decode(sys.getfilesystemencoding())
             mobi_path = os.path.join(docs, f)
             if args.verbose:
