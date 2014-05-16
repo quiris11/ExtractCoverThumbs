@@ -108,6 +108,7 @@ def get_cover_image(file, doctype):
 def main():
     if not args.verbose:
         print("START of extracting cover thumbnails...")
+        print("NOTICE! AZW files are IGNORED!")
     try:
         dir_list = os.listdir(docs)
     except:
