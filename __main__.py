@@ -14,7 +14,6 @@ from __future__ import print_function
 import argparse
 import sys
 import os
-import re
 import KindleUnpack
 from imghdr import what
 from io import BytesIO
@@ -95,7 +94,6 @@ def get_cover_image(file, doctype):
             cover.thumbnail((220, 330), Image.ANTIALIAS)
             cover = cover.convert('L')
             if doctype == 'PDOC':
-                size = cover.size
                 pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+45),
                                        "white")
                 pdoc_cover.paste(cover, (0, 0))
