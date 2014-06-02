@@ -19,3 +19,6 @@ setup(
     zipfile=None,
     console=[{'script': '__main__.py', 'dest_base': 'ExtractCoverThumbs'}],
 )
+
+# build on Mac:
+# pyinstaller -Fn ExtractCoverThumbs ~/github/ExtractCoverThumbs/__main__.py
