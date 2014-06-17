@@ -36,29 +36,9 @@ kindlepth = args.kindle_directory
 docs = os.path.join(kindlepth, 'documents')
 
 
-def find_header(search_id, mobi_file):
-    import struct
-    with open(os.path.join(mobi_file), 'rb') as f:
-        content = f.read()
-    exth_begin = content.find('EXTH')
-    exth_header = content[exth_begin:]
-    count_items, = struct.unpack('>L', exth_header[8:12])
-    pos = 12
-    for _ in range(count_items):
-        id, size = struct.unpack('>LL', exth_header[pos:pos+8])
-        exth_record = exth_header[pos + 8: pos + size]
-        if id == search_id:
-            return exth_record.decode('utf-8')
-        pos += size
-
-
 # get_cover_image based on Pawel Jastrzebski <pawelj@vulturis.eu> work:
 # https://github.com/AcidWeb/KindleButler/blob/master/KindleButler/File.py
-def get_cover_image(file, doctype):
-    section = KindleUnpack.Sectionizer(file)
-    mhlst = [KindleUnpack.MobiHeader(section, 0)]
-    mh = mhlst[0]
-    metadata = mh.getmetadata()
+def get_cover_image(section, mh, metadata, doctype):
     try:
         cover_offset = metadata['CoverOffset'][0]
     except KeyError:
@@ -129,8 +109,12 @@ def main():
                     print('* ERROR! INVALID format of file "%s". Skipping...'
                           % fide)
                     continue
-            asin = find_header(113, mobi_path)
-            doctype = find_header(501, mobi_path)
+            section = KindleUnpack.Sectionizer(mobi_path)
+            mhlst = [KindleUnpack.MobiHeader(section, 0)]
+            mh = mhlst[0]
+            metadata = mh.getmetadata()
+            asin = metadata['ASIN'][0]
+            doctype = metadata['Document Type'][0]
             if asin is None:
                 print('No ASIN found in a current file. Skipping...')
                 continue
@@ -142,7 +126,7 @@ def main():
                 if args.verbose:
                     print('No cover found for current file. Trying to fix'
                           ' it...')
-                cover = get_cover_image(mobi_path, doctype)
+                cover = get_cover_image(section, mh, metadata, doctype)
                 if not cover:
                     continue
                 cover.save(thumbpath)
