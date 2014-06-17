@@ -8,13 +8,10 @@ __docformat__ = 'restructuredtext en'
 Generates and writes an APNX page mapping file.
 '''
 
-import re
 import struct
+import KindleUnpack
 
-from calibre.ebooks.mobi.reader.mobi6 import MobiReader
-from calibre.ebooks.pdb.header import PdbHeaderReader
-from calibre.ebooks.mobi.reader.headers import MetadataHeader
-from calibre.utils.logging import default_log
+from header import PdbHeaderReader
 
 
 class APNXBuilder(object):
@@ -42,40 +39,29 @@ class APNXBuilder(object):
         # We'll need the PDB name, the MOBI version, and some metadata to make
         # FW 3.4 happy with KF8 files...
         with open(mobi_file_path, 'rb') as mf:
-            mh = MetadataHeader(mf, default_log)
-            if mh.mobi_version == 8:
+            section = KindleUnpack.Sectionizer(mobi_file_path)
+            mhlst = [KindleUnpack.MobiHeader(section, 0)]
+            mh = mhlst[0]
+            metadata = mh.getmetadata()
+            if mh.version == 8:
                 apnx_meta['format'] = 'MOBI_8'
             else:
                 apnx_meta['format'] = 'MOBI_7'
-            if mh.exth is None or not mh.exth.cdetype:
+            if metadata['Document Type'][0] is None:
                 apnx_meta['cdetype'] = 'EBOK'
             else:
-                apnx_meta['cdetype'] = str(mh.exth.cdetype)
-            if mh.exth is None or not mh.exth.uuid:
+                apnx_meta['cdetype'] = metadata['Document Type'][0]
+            if metadata['ASIN'][0] is None:
                 apnx_meta['asin'] = ''
             else:
-                apnx_meta['asin'] = str(mh.exth.uuid)
+                apnx_meta['asin'] = metadata['ASIN'][0]
 
         # Get the pages depending on the chosen parser
         pages = []
         if page_count:
             pages = self.get_pages_exact(mobi_file_path, page_count)
         else:
-            try:
-                if method == 'accurate':
-                    pages = self.get_pages_accurate(mobi_file_path)
-                elif method == 'pagebreak':
-                    pages = self.get_pages_pagebreak_tag(mobi_file_path)
-                    if not pages:
-                        pages = self.get_pages_accurate(mobi_file_path)
-                else:
-                    raise Exception('%r is not a valid apnx generation method'
-                                    % method)
-            except:
-                # Fall back to the fast parser if we can't
-                # use the accurate one. Typically this is
-                # due to the file having DRM.
-                pages = self.get_pages_fast(mobi_file_path)
+            pages = self.get_pages_fast(mobi_file_path)
 
         if not pages:
             pages = self.get_pages_fast(mobi_file_path)
@@ -172,112 +158,5 @@ class APNXBuilder(object):
         while count < text_length:
             pages.append(count)
             count += 2300
-
-        return pages
-
-    def get_pages_accurate(self, mobi_file_path):
-        '''
-        A more accurate but much more resource intensive and slower
-        method to calculate the page length.
-
-        Parses the uncompressed text. In an average paper back book
-        There are 32 lines per page and a maximum of 70 characters
-        per line.
-
-        Each paragraph starts a new line and every 70 characters
-        (minus markup) in a paragraph starts a new line. The
-        position after every 30 lines will be marked as a new
-        page.
-
-        This can be make more accurate by accounting for
-        <div class="mbp_pagebreak" /> as a new page marker.
-        And <br> elements as an empty line.
-        '''
-        pages = []
-
-        # Get the MOBI html.
-        mr = MobiReader(mobi_file_path, default_log)
-        if mr.book_header.encryption_type != 0:
-            # DRMed book
-            return self.get_pages_fast(mobi_file_path)
-        mr.extract_text()
-
-        # States
-        in_tag = False
-        in_p = False
-        check_p = False
-        closing = False
-        p_char_count = 0
-
-        # Get positions of every line
-        # A line is either a paragraph starting
-        # or every 70 characters in a paragraph.
-        lines = []
-        pos = -1
-        # We want this to be as fast as possible so we
-        # are going to do one pass across the text. re
-        # and string functions will parse the text each
-        # time they are called.
-        #
-        # We can can use .lower() here because we are
-        # not modifying the text. In this case the case
-        # doesn't matter just the absolute character and
-        # the position within the stream.
-        for c in mr.mobi_html.lower():
-            pos += 1
-
-            # Check if we are starting or stopping a p tag.
-            if check_p:
-                if c == '/':
-                    closing = True
-                    continue
-                elif c == 'p':
-                    if closing:
-                        in_p = False
-                    else:
-                        in_p = True
-                        lines.append(pos - 2)
-                check_p = False
-                closing = False
-                continue
-
-            if c == '<':
-                in_tag = True
-                check_p = True
-                continue
-            elif c == '>':
-                in_tag = False
-                check_p = False
-                continue
-
-            if in_p and not in_tag:
-                p_char_count += 1
-                if p_char_count == 70:
-                    lines.append(pos)
-                    p_char_count = 0
-
-        # Every 30 lines is a new page
-        for i in xrange(0, len(lines), 32):
-            pages.append(lines[i])
-
-        return pages
-
-    def get_pages_pagebreak_tag(self, mobi_file_path):
-        '''
-        Determine pages based on the presense of
-        <mbp:pagebreak>.
-        '''
-        pages = []
-
-        # Get the MOBI html.
-        mr = MobiReader(mobi_file_path, default_log)
-        if mr.book_header.encryption_type != 0:
-            # DRMed book
-            return self.get_pages_fast(mobi_file_path)
-        mr.extract_text()
-
-        html = mr.mobi_html.lower()
-        for m in re.finditer('<[^>]*pagebreak[^>]*>', html):
-            pages.append(m.end())
 
         return pages
