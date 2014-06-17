@@ -100,9 +100,9 @@ def main():
         if f.lower().endswith(('.azw3', '.mobi')):
             fide = f.decode(sys.getfilesystemencoding())
             mobi_path = os.path.join(docs, f)
-            apnx_path = os.path.splitext(mobi_path)[0] + '.apnx'
-            apnx_builder = APNXBuilder()
-            apnx_builder.write_apnx(mobi_path, apnx_path)
+            # apnx_path = os.path.splitext(mobi_path)[0] + '.apnx'
+            # apnx_builder = APNXBuilder()
+            # apnx_builder.write_apnx(mobi_path, apnx_path)
             if args.verbose:
                 try:
                     print('Processing "%s":' % fide, end=' ')
