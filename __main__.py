@@ -15,7 +15,7 @@ import argparse
 import sys
 import os
 import KindleUnpack
-from apnx import APNXBuilder
+# from apnx import APNXBuilder
 
 from imghdr import what
 from io import BytesIO
@@ -85,6 +85,25 @@ def get_cover_image(section, mh, metadata, doctype):
     return False
 
 
+def fix_generated_thumbs(file, verbose):
+    try:
+        cover = Image.open(file)
+    except IOError:
+        return None
+    try:
+        dpi = cover.info["dpi"]
+    except KeyError:
+        if verbose:
+            print('Fixing generated thumbnail "%s"...' % (file))
+        pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+45), "white")
+        pdoc_cover.paste(cover, (0, 0))
+        return pdoc_cover
+    if verbose:
+        print('Generated thumbnail "%s" is fixed. DPI set up: %s. Skipping...'
+              % (os.path.basename(file), dpi))
+    return cover
+
+
 def main():
     if not args.verbose:
         print("START of extracting cover thumbnails...")
@@ -118,8 +137,14 @@ def main():
             mhlst = [KindleUnpack.MobiHeader(section, 0)]
             mh = mhlst[0]
             metadata = mh.getmetadata()
-            asin = metadata['ASIN'][0]
-            doctype = metadata['Document Type'][0]
+            try:
+                asin = metadata['ASIN'][0]
+            except KeyError:
+                asin = None
+            try:
+                doctype = metadata['Document Type'][0]
+            except KeyError:
+                doctype = None
             if asin is None:
                 print('No ASIN found in a current file. Skipping...')
                 continue
@@ -137,6 +162,16 @@ def main():
                 cover.save(thumbpath)
             elif args.verbose:
                 print('Cover thumbnail for current file exists. Skipping...')
+    thumb_dir = os.path.join(kindlepth, 'system', 'thumbnails')
+    thumb_list = os.listdir(thumb_dir)
+    for c in thumb_list:
+        if c.startswith('thumbnail') and c.endswith('.jpg'):
+            if c.endswith('portrait.jpg'):
+                continue
+            cover = fix_generated_thumbs(os.path.join(thumb_dir, c),
+                                         args.verbose)
+            if cover is not None:
+                cover.save(os.path.join(thumb_dir, c), dpi=[72, 72])
     if not args.verbose:
         print("FINISH of extracting cover thumbnails...")
     return 0
