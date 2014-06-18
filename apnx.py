@@ -47,14 +47,21 @@ class APNXBuilder(object):
                 apnx_meta['format'] = 'MOBI_8'
             else:
                 apnx_meta['format'] = 'MOBI_7'
-            if metadata['Document Type'][0] is None:
+            try:
+                if metadata['Document Type'][0] is None:
+                    apnx_meta['cdetype'] = 'EBOK'
+                else:
+                    apnx_meta['cdetype'] = 'EBOK'
+                    apnx_meta['cdetype'] = metadata['Document Type'][0]
+            except KeyError:
                 apnx_meta['cdetype'] = 'EBOK'
-            else:
-                apnx_meta['cdetype'] = metadata['Document Type'][0]
-            if metadata['ASIN'][0] is None:
+            try:
+                if metadata['ASIN'][0] is None:
+                    apnx_meta['asin'] = ''
+                else:
+                    apnx_meta['asin'] = metadata['ASIN'][0]
+            except KeyError:
                 apnx_meta['asin'] = ''
-            else:
-                apnx_meta['asin'] = metadata['ASIN'][0]
 
         # Get the pages depending on the chosen parser
         pages = []

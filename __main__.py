@@ -15,7 +15,7 @@ import argparse
 import sys
 import os
 import KindleUnpack
-# from apnx import APNXBuilder
+from apnx import APNXBuilder
 
 from imghdr import what
 from io import BytesIO
@@ -104,6 +104,21 @@ def fix_generated_thumbs(file, verbose):
     return cover
 
 
+def generate_apnx_files(dir_list, docs, verbose, overwrite):
+    apnx_builder = APNXBuilder()
+    for f in dir_list:
+        if f.lower().endswith(('.azw3', '.mobi', '.azw')):
+            mobi_path = os.path.join(docs, f)
+            apnx_path = os.path.join(
+                docs, os.path.splitext(f)[0] + '.sdr',
+                os.path.splitext(f)[0] + '.apnx'
+            )
+            if not os.path.isfile(apnx_path) or args.overwrite:
+                if verbose:
+                    print('Generating APNX file for "%s"' % f)
+                apnx_builder.write_apnx(mobi_path, apnx_path)
+
+
 def main():
     if not args.verbose:
         print("START of extracting cover thumbnails...")
@@ -115,13 +130,11 @@ def main():
               kindlepth)
         print("FINISH of extracting cover thumbnails...")
         return 0
+    generate_apnx_files(dir_list, docs, args.verbose, args.overwrite)
     for f in dir_list:
-        if f.lower().endswith(('.azw3', '.mobi')):
+        if f.lower().endswith(('.azw3', '.mobi', '.azw')):
             fide = f.decode(sys.getfilesystemencoding())
             mobi_path = os.path.join(docs, f)
-            # apnx_path = os.path.splitext(mobi_path)[0] + '.apnx'
-            # apnx_builder = APNXBuilder()
-            # apnx_builder.write_apnx(mobi_path, apnx_path)
             if args.verbose:
                 try:
                     print('Processing "%s":' % fide, end=' ')
