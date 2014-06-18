@@ -125,6 +125,7 @@ def main():
         print("NOTICE! AZW files are IGNORED!")
     try:
         dir_list = os.listdir(docs)
+        dir_list.sort()
     except:
         print('* ERROR! No Kindle device found in a specified directory: ' +
               kindlepth)
