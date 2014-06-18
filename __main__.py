@@ -32,6 +32,8 @@ parser.add_argument("-v", "--verbose", help="print more informations",
                     action="store_true")
 parser.add_argument("-o", "--overwrite", help="overwrite thumbnails",
                     action="store_true")
+parser.add_argument("-a", "--apnx", help="also generate APNX files",
+                    action="store_true")
 args = parser.parse_args()
 
 kindlepth = args.kindle_directory
@@ -131,7 +133,8 @@ def main():
               kindlepth)
         print("FINISH of extracting cover thumbnails...")
         return 0
-    generate_apnx_files(dir_list, docs, args.verbose, args.overwrite)
+    if args.apnx:
+        generate_apnx_files(dir_list, docs, args.verbose, args.overwrite)
     for f in dir_list:
         if f.lower().endswith(('.azw3', '.mobi', '.azw')):
             fide = f.decode(sys.getfilesystemencoding())
