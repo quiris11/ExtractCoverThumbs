@@ -26,6 +26,8 @@ except ImportError:
     sys.exit('ERROR! Python Imaging Library (PIL) or Pillow not installed.')
 
 parser = argparse.ArgumentParser()
+parser.add_argument('-V', '--version', action='version',
+                    version="%(prog)s (version 0.5)")
 parser.add_argument("kindle_directory", help="directory where is a Kindle"
                     " Paperwhite mounted")
 parser.add_argument("-v", "--verbose", help="print more informations",
