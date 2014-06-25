@@ -42,12 +42,12 @@ docs = os.path.join(kindlepth, 'documents')
 
 # get_cover_image based on Pawel Jastrzebski <pawelj@vulturis.eu> work:
 # https://github.com/AcidWeb/KindleButler/blob/master/KindleButler/File.py
-def get_cover_image(section, mh, metadata, doctype):
+def get_cover_image(section, mh, metadata, doctype, file):
     try:
         cover_offset = metadata['CoverOffset'][0]
     except KeyError:
         print('* ERROR! Cover does NOT defined in "%s". Skipping...'
-              % os.path.basename(file))
+              % file)
         return False
     beg = mh.firstresource
     end = section.num_sections
@@ -173,7 +173,7 @@ def main():
                 if args.verbose:
                     print('No cover found for current file. Trying to fix'
                           ' it...')
-                cover = get_cover_image(section, mh, metadata, doctype)
+                cover = get_cover_image(section, mh, metadata, doctype, f)
                 if not cover:
                     continue
                 cover.save(thumbpath)
