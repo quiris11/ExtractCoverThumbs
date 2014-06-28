@@ -11,7 +11,6 @@
 #
 
 from __future__ import print_function
-import argparse
 import sys
 import os
 import KindleUnpack
@@ -24,22 +23,6 @@ try:
     from PIL import Image
 except ImportError:
     sys.exit('ERROR! Python Imaging Library (PIL) or Pillow not installed.')
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-V', '--version', action='version',
-                    version="%(prog)s (version 0.6)")
-parser.add_argument("kindle_directory", help="directory where is a Kindle"
-                    " Paperwhite mounted")
-parser.add_argument("-v", "--verbose", help="print more informations",
-                    action="store_true")
-parser.add_argument("-o", "--overwrite", help="overwrite thumbnails",
-                    action="store_true")
-parser.add_argument("-a", "--apnx", help="also generate APNX files",
-                    action="store_true")
-args = parser.parse_args()
-
-kindlepth = args.kindle_directory
-docs = os.path.join(kindlepth, 'documents')
 
 
 # get_cover_image based on Pawel Jastrzebski <pawelj@vulturis.eu> work:
@@ -89,7 +72,7 @@ def get_cover_image(section, mh, metadata, doctype, file):
     return False
 
 
-def fix_generated_thumbs(file, verbose):
+def fix_generated_thumbs(file, is_verbose):
     try:
         cover = Image.open(file)
     except IOError:
@@ -97,18 +80,18 @@ def fix_generated_thumbs(file, verbose):
     try:
         dpi = cover.info["dpi"]
     except KeyError:
-        if verbose:
+        if is_verbose:
             print('Fixing generated thumbnail "%s"...' % (file))
         pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+45), "white")
         pdoc_cover.paste(cover, (0, 0))
         return pdoc_cover
-    if verbose:
+    if is_verbose:
         print('Generated thumbnail "%s" is fixed. DPI set up: %s. Skipping...'
               % (os.path.basename(file), dpi))
     return cover
 
 
-def generate_apnx_files(dir_list, docs, verbose, overwrite):
+def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite):
     apnx_builder = APNXBuilder()
     for f in dir_list:
         if f.lower().endswith(('.azw3', '.mobi', '.azw')):
@@ -117,14 +100,14 @@ def generate_apnx_files(dir_list, docs, verbose, overwrite):
                 docs, os.path.splitext(f)[0] + '.sdr',
                 os.path.splitext(f)[0] + '.apnx'
             )
-            if not os.path.isfile(apnx_path) or args.overwrite:
-                if verbose:
+            if not os.path.isfile(apnx_path) or is_overwrite:
+                if is_verbose:
                     print('Generating APNX file for "%s"' % f)
                 apnx_builder.write_apnx(mobi_path, apnx_path)
 
 
-def main():
-    if not args.verbose:
+def extract_cover_thumbs(is_verbose, is_overwrite, is_apnx, kindlepath, docs):
+    if not is_verbose:
         print("START of extracting cover thumbnails...")
         print("NOTICE! AZW files are IGNORED!")
     try:
@@ -132,16 +115,16 @@ def main():
         dir_list.sort()
     except:
         print('* ERROR! No Kindle device found in a specified directory: ' +
-              kindlepth)
+              kindlepath)
         print("FINISH of extracting cover thumbnails...")
         return 0
-    if args.apnx:
-        generate_apnx_files(dir_list, docs, args.verbose, args.overwrite)
+    if is_apnx:
+        generate_apnx_files(dir_list, docs, is_verbose, is_overwrite)
     for f in dir_list:
         if f.lower().endswith(('.azw3', '.mobi', '.azw')):
             fide = f.decode(sys.getfilesystemencoding())
             mobi_path = os.path.join(docs, f)
-            if args.verbose:
+            if is_verbose:
                 try:
                     print('Processing "%s":' % fide, end=' ')
                 except:
@@ -168,33 +151,29 @@ def main():
                 print('No ASIN found in a current file. Skipping...')
                 continue
             thumbpath = os.path.join(
-                kindlepth, 'system', 'thumbnails',
+                kindlepath, 'system', 'thumbnails',
                 'thumbnail_%s_%s_portrait.jpg' % (asin, doctype)
             )
-            if not os.path.isfile(thumbpath) or args.overwrite:
-                if args.verbose:
+            if not os.path.isfile(thumbpath) or is_overwrite:
+                if is_verbose:
                     print('No cover found for current file. Trying to fix'
                           ' it...')
                 cover = get_cover_image(section, mh, metadata, doctype, f)
                 if not cover:
                     continue
                 cover.save(thumbpath)
-            elif args.verbose:
+            elif is_verbose:
                 print('Cover thumbnail for current file exists. Skipping...')
-    thumb_dir = os.path.join(kindlepth, 'system', 'thumbnails')
+    thumb_dir = os.path.join(kindlepath, 'system', 'thumbnails')
     thumb_list = os.listdir(thumb_dir)
     for c in thumb_list:
         if c.startswith('thumbnail') and c.endswith('.jpg'):
             if c.endswith('portrait.jpg'):
                 continue
             cover = fix_generated_thumbs(os.path.join(thumb_dir, c),
-                                         args.verbose)
+                                         is_verbose)
             if cover is not None:
                 cover.save(os.path.join(thumb_dir, c), dpi=[72, 72])
-    if not args.verbose:
+    if not is_verbose:
         print("FINISH of extracting cover thumbnails...")
     return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())
