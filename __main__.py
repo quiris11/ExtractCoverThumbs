@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
@@ -21,7 +19,6 @@ numeric_version = (0, 6)
 __version__ = u'.'.join(map(unicode, numeric_version))
 __author__ = u'Robert Błaut <listy@blaut.biz>'
 
->>>>>>> FETCH_HEAD
 import argparse
 import os
 import sys
