@@ -96,10 +96,16 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite):
     for f in dir_list:
         if f.lower().endswith(('.azw3', '.mobi', '.azw')):
             mobi_path = os.path.join(docs, f)
-            apnx_path = os.path.join(
-                docs, os.path.splitext(f)[0] + '.sdr',
-                os.path.splitext(f)[0] + '.apnx'
-            )
+            if os.path.isdir(os.path.join(docs,
+                                          os.path.splitext(f)[0] + '.sdr')):
+                apnx_path = os.path.join(
+                    docs, os.path.splitext(f)[0] + '.sdr',
+                    os.path.splitext(f)[0] + '.apnx'
+                )
+            else:
+                apnx_path = os.path.join(
+                    docs, os.path.splitext(f)[0] + '.apnx'
+                )
             if not os.path.isfile(apnx_path) or is_overwrite:
                 if is_verbose:
                     print('Generating APNX file for "%s"' % f)
