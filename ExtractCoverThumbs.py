@@ -121,7 +121,7 @@ def extract_cover_thumbs(is_verbose, is_overwrite, is_apnx, kindlepath, docs):
     if is_apnx:
         generate_apnx_files(dir_list, docs, is_verbose, is_overwrite)
     for f in dir_list:
-        if f.lower().endswith(('.azw3', '.mobi', '.azw')):
+        if f.lower().endswith(('.azw3', '.mobi')):
             fide = f.decode(sys.getfilesystemencoding())
             mobi_path = os.path.join(docs, f)
             if is_verbose:
