@@ -123,13 +123,13 @@ def extract_cover_thumbs(is_verbose, is_overwrite, is_apnx, kindlepath, docs):
         print('* ERROR! No Kindle device found in a specified directory: ' +
               kindlepath)
         print("FINISH of extracting cover thumbnails...")
-        return 0
+        return 1
     if is_apnx:
         generate_apnx_files(dir_list, docs, is_verbose, is_overwrite)
     if not os.path.isdir(os.path.join(kindlepath, 'system', 'thumbnails')):
         print('* UNABLE to continue... Thumbnails directory does not exist. '
               'Probably not a Kindle Paperwhite/Touch device.')
-        return 0
+        return 1
     for f in dir_list:
         if f.lower().endswith(('.azw3', '.mobi')):
             fide = f.decode(sys.getfilesystemencoding())

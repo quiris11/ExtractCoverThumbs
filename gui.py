@@ -26,51 +26,56 @@ class App:
         self.kindlepath = StringVar()
         self.status = StringVar()
 
-        frame = Frame(master, borderwidth=20)
-        frame.pack()
+        self.frame = Frame(master, borderwidth=20)
+        self.frame.pack()
 
-        self.chk_button = Button(frame, text="Choose Kindle",
+        self.chk_button = Button(self.frame, text="Choose Kindle",
                                  command=self.askdirectory)
         self.chk_button.pack(side=TOP, fill=X)
 
-        self.kindle_label = Label(frame, textvariable=self.kindlepath)
+        self.kindle_label = Label(self.frame, textvariable=self.kindlepath)
         self.kindle_label.pack(side=TOP, pady=5)
 
-        self.apnx_checkbox = Checkbutton(frame, text="Generate APNX?",
+        self.apnx_checkbox = Checkbutton(self.frame, text="Generate APNX?",
                                          variable=self.is_apnx)
         self.apnx_checkbox.select()
         self.apnx_checkbox.pack(side=TOP, anchor=W)
 
-        self.log_checkbox = Checkbutton(frame, text="Generate Log File?",
+        self.log_checkbox = Checkbutton(self.frame, text="Generate Log File?",
                                         variable=self.is_log)
         self.log_checkbox.deselect()
         self.log_checkbox.pack(side=TOP, anchor=W)
 
-        self.over_checkbox = Checkbutton(frame, text="Overwrite Cover Thumbs?",
+        self.over_checkbox = Checkbutton(self.frame,
+                                         text="Overwrite Cover Thumbs?",
                                          variable=self.is_overwrite)
         self.over_checkbox.deselect()
         self.over_checkbox.pack(side=TOP, anchor=W)
 
-        self.empty = Label(frame, width=30)
+        self.empty = Label(self.frame, width=30)
         self.empty.pack(side=TOP, anchor=W)
 
-        self.run_button = Button(frame, text="Start", command=self.run)
+        self.run_button = Button(self.frame, text="Start", command=self.run)
         self.run_button.pack(side=TOP, fill=X)
 
-        self.w = Label(frame, textvariable=self.status)
-        self.w.pack(side=TOP, pady=5)
+        self.status_label = Label(self.frame, textvariable=self.status)
+        self.status_label.pack(side=TOP, pady=5)
 
-        self.show_log_button = Button(frame, text="Open Log File",
+        self.show_log_button = Button(self.frame, text="Open Log File",
                                       command=self.run)
         self.show_log_button.pack(side=TOP, fill=X)
 
     def run(self):
         self.docs = os.path.join(self.kindlepath.get(), 'documents')
-        self.status.set('Start processing...')
-        extract_cover_thumbs(self.is_log.get(), self.is_overwrite.get(),
-                             self.is_apnx.get(), self.kindlepath.get(),
-                             self.docs)
-        self.status.set('Process finished...')
+        self.status.set('Start processing your books...')
+        self.frame.update_idletasks()
+        ec = extract_cover_thumbs(self.is_log.get(), self.is_overwrite.get(),
+                                  self.is_apnx.get(), self.kindlepath.get(),
+                                  self.docs)
+        if ec == 0:
+            self.status.set('Finished :)')
+        elif ec == 1:
+            self.status.set('Finished with problems!')
 
     def askdirectory(self):
         a = tkFileDialog.askdirectory()
