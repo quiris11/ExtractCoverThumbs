@@ -86,15 +86,16 @@ class App:
         self.frame4 = Frame(master, borderwidth=5)
         self.frame4.pack(side=TOP)
 
-        msg1 = 'Message Window: \n'
+        self.msg1 = 'Message Window: \n'
         self.stext = ScrolledText(self.frame4, bd=1, wrap=WORD, relief=RIDGE)
         self.stext.pack()
-        self.stext.insert(END, msg1)
+        self.stext.insert(END, self.msg1)
 
         sys.stdout = StdoutRedirector(self.stext)
 
     def run(self):
         self.docs = os.path.join(self.kindlepath.get(), 'documents')
+        self.stext.delete(1.0, END)
         self.status.set('Start processing your books...')
         self.frame.update_idletasks()
         ec = extract_cover_thumbs(self.is_log.get(), self.is_overwrite.get(),
