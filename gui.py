@@ -12,6 +12,7 @@
 
 from ExtractCoverThumbs import extract_cover_thumbs
 from Tkinter import *
+from ScrolledText import ScrolledText
 import tkFileDialog
 import sys
 import os
@@ -20,6 +21,15 @@ import os
 class App:
 
     def __init__(self, master):
+
+        class IORedirector(object):
+            def __init__(self, stext):
+                self.stext = stext
+
+        class StdoutRedirector(IORedirector):
+            def write(self, str):
+                self.stext.insert(END, str)
+
         self.is_apnx = BooleanVar()
         self.is_log = BooleanVar()
         self.is_overwrite = BooleanVar()
@@ -31,20 +41,20 @@ class App:
 
         self.chk_button = Button(self.frame, text="Choose Kindle",
                                  command=self.askdirectory)
-        self.chk_button.pack(side=TOP, fill=X)
+        self.chk_button.pack(side=TOP)
 
         self.kindle_label = Label(self.frame, textvariable=self.kindlepath)
         self.kindle_label.pack(side=TOP, pady=5)
+
+        self.log_checkbox = Checkbutton(self.frame, text="Detailed info?",
+                                        variable=self.is_log)
+        self.log_checkbox.select()
+        self.log_checkbox.pack(side=TOP, anchor=W)
 
         self.apnx_checkbox = Checkbutton(self.frame, text="Generate APNX?",
                                          variable=self.is_apnx)
         self.apnx_checkbox.select()
         self.apnx_checkbox.pack(side=TOP, anchor=W)
-
-        self.log_checkbox = Checkbutton(self.frame, text="Generate Log File?",
-                                        variable=self.is_log)
-        self.log_checkbox.deselect()
-        self.log_checkbox.pack(side=TOP, anchor=W)
 
         self.over_checkbox = Checkbutton(self.frame,
                                          text="Overwrite Cover Thumbs?",
@@ -56,14 +66,17 @@ class App:
         self.empty.pack(side=TOP, anchor=W)
 
         self.run_button = Button(self.frame, text="Start", command=self.run)
-        self.run_button.pack(side=TOP, fill=X)
+        self.run_button.pack(side=TOP)
 
         self.status_label = Label(self.frame, textvariable=self.status)
         self.status_label.pack(side=TOP, pady=5)
 
-        self.show_log_button = Button(self.frame, text="Open Log File",
-                                      command=self.run)
-        self.show_log_button.pack(side=TOP, fill=X)
+        msg1 = 'Message Log: \n'
+        self.stext = ScrolledText(self.frame, bd=1, wrap=WORD, relief=RIDGE)
+        self.stext.pack()
+        self.stext.insert(END, msg1)
+
+        sys.stdout = StdoutRedirector(self.stext)
 
     def run(self):
         self.docs = os.path.join(self.kindlepath.get(), 'documents')
@@ -84,5 +97,4 @@ class App:
 root = Tk()
 app = App(root)
 root.title('ExtractCoverThumbs 0.6')
-# root.geometry("280x250+50+50")
 root.mainloop()
