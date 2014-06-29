@@ -36,43 +36,58 @@ class App:
         self.kindlepath = StringVar()
         self.status = StringVar()
 
-        self.frame = Frame(master, borderwidth=20)
-        self.frame.pack()
+        self.frame = Frame(master, borderwidth=5)
+        self.frame.pack(side=TOP, anchor=W)
 
         self.chk_button = Button(self.frame, text="Choose Kindle",
-                                 command=self.askdirectory)
-        self.chk_button.pack(side=TOP)
+                                 command=self.askdirectory, width=15)
+        self.chk_button.pack(side=LEFT)
 
         self.kindle_label = Label(self.frame, textvariable=self.kindlepath)
-        self.kindle_label.pack(side=TOP, pady=5)
+        self.kindle_label.pack(side=LEFT)
 
-        self.log_checkbox = Checkbutton(self.frame, text="Detailed info?",
-                                        variable=self.is_log)
+        self.frame2 = Frame(master, borderwidth=5)
+        self.frame2.pack(side=TOP, pady=5)
+        self.log_checkbox = Checkbutton(
+            self.frame2, text="Write detailed informations in Message Window?",
+            variable=self.is_log
+        )
+
         self.log_checkbox.select()
-        self.log_checkbox.pack(side=TOP, anchor=W)
+        self.log_checkbox.pack(side=TOP, anchor=NW)
 
-        self.apnx_checkbox = Checkbutton(self.frame, text="Generate APNX?",
-                                         variable=self.is_apnx)
+        self.apnx_checkbox = Checkbutton(
+            self.frame2, text="Generate book page numbers (APNX file)?",
+            variable=self.is_apnx
+        )
+
         self.apnx_checkbox.select()
-        self.apnx_checkbox.pack(side=TOP, anchor=W)
+        self.apnx_checkbox.pack(side=TOP, anchor=NW)
 
-        self.over_checkbox = Checkbutton(self.frame,
-                                         text="Overwrite Cover Thumbs?",
-                                         variable=self.is_overwrite)
+        self.over_checkbox = Checkbutton(
+            self.frame2,
+            text="Overwrite Cover Thumbnails existing on a device?",
+            variable=self.is_overwrite
+        )
+
         self.over_checkbox.deselect()
-        self.over_checkbox.pack(side=TOP, anchor=W)
+        self.over_checkbox.pack(side=TOP, anchor=NW)
 
-        self.empty = Label(self.frame, width=30)
-        self.empty.pack(side=TOP, anchor=W)
+        self.frame3 = Frame(master, borderwidth=5)
+        self.frame3.pack(side=TOP, anchor=W)
 
-        self.run_button = Button(self.frame, text="Start", command=self.run)
-        self.run_button.pack(side=TOP)
+        self.run_button = Button(self.frame3, text="Start", command=self.run,
+                                 width=15)
+        self.run_button.pack(side=LEFT)
 
-        self.status_label = Label(self.frame, textvariable=self.status)
-        self.status_label.pack(side=TOP, pady=5)
+        self.status_label = Label(self.frame3, textvariable=self.status)
+        self.status_label.pack(side=LEFT, pady=5)
 
-        msg1 = 'Message Log: \n'
-        self.stext = ScrolledText(self.frame, bd=1, wrap=WORD, relief=RIDGE)
+        self.frame4 = Frame(master, borderwidth=5)
+        self.frame4.pack(side=TOP)
+
+        msg1 = 'Message Window: \n'
+        self.stext = ScrolledText(self.frame4, bd=1, wrap=WORD, relief=RIDGE)
         self.stext.pack()
         self.stext.insert(END, msg1)
 
@@ -86,9 +101,9 @@ class App:
                                   self.is_apnx.get(), self.kindlepath.get(),
                                   self.docs)
         if ec == 0:
-            self.status.set('Finished :)')
+            self.status.set('Process finished.')
         elif ec == 1:
-            self.status.set('Finished with problems!')
+            self.status.set('Process finished with problems!')
 
     def askdirectory(self):
         a = tkFileDialog.askdirectory()
