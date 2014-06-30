@@ -17,8 +17,10 @@ setup(
         }
     },
     zipfile=None,
-    console=[{'script': '__main__.py', 'dest_base': 'ExtractCoverThumbs'}],
+    console=[{'script': '__main__.py', 'dest_base': 'ExtractCoverThumbs_con'}],
+    windows=[{'script': 'gui.py', 'dest_base': 'ExtractCoverThumbs_win'}],
 )
 
 # build on Mac:
-# pyinstaller -Fn ExtractCoverThumbs ~/github/ExtractCoverThumbs/__main__.py
+# pyinstaller -Fn ExtractCoverThumbs_con ~/github/ExtractCoverThumbs/__main__.py
+# pyinstaller -Fn ExtractCoverThumbs_app  --windowed ~/github/ExtractCoverThumbs/gui.py
