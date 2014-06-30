@@ -9,6 +9,7 @@ Generates and writes an APNX page mapping file.
 '''
 
 import struct
+import os
 import KindleUnpack
 
 from header import PdbHeaderReader
@@ -33,7 +34,9 @@ class APNXBuilder(object):
             ident = PdbHeaderReader(mf).identity()
             if ident != 'BOOKMOBI':
                 # Check that this is really a MOBI file.
-                print('Not a valid MOBI file. Reports identity of %s') % ident
+                print('ERROR! Not a valid MOBI file "%s"'
+                      % os.path.basename(mobi_file_path))
+                return 1
             apnx_meta['acr'] = str(PdbHeaderReader(mf).name())
 
         # We'll need the PDB name, the MOBI version, and some metadata to make
