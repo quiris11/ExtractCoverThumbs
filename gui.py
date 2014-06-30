@@ -53,7 +53,7 @@ class App:
             variable=self.is_log
         )
 
-        self.log_checkbox.select()
+        self.log_checkbox.deselect()
         self.log_checkbox.pack(side=TOP, anchor=NW)
 
         self.apnx_checkbox = Checkbutton(
@@ -61,7 +61,7 @@ class App:
             variable=self.is_apnx
         )
 
-        self.apnx_checkbox.select()
+        self.apnx_checkbox.deselect()
         self.apnx_checkbox.pack(side=TOP, anchor=NW)
 
         self.over_checkbox = Checkbutton(
@@ -87,7 +87,10 @@ class App:
         self.frame4.pack(side=TOP)
 
         self.msg1 = 'Message Window: \n'
-        self.stext = ScrolledText(self.frame4, bd=1, wrap=WORD, relief=RIDGE)
+        self.stext = ScrolledText(self.frame4, bd=1, wrap=WORD,
+                                  height=20, relief=RIDGE)
+        if sys.platform == 'win32':
+            self.stext.config(font=('Courier', 9, 'normal'))
         self.stext.pack()
         self.stext.insert(END, self.msg1)
 
@@ -107,10 +110,14 @@ class App:
             self.status.set('Process finished with problems!')
 
     def askdirectory(self):
-        a = tkFileDialog.askdirectory()
+        if sys.platform == 'win32':
+            a = tkFileDialog.askdirectory(initialdir="c:/")
+        else:
+            a = tkFileDialog.askdirectory(initialdir="/")
         self.kindlepath.set(str(a.encode(sys.getfilesystemencoding())))
 
 root = Tk()
 app = App(root)
 root.title('ExtractCoverThumbs 0.6')
+root.resizable(width=FALSE, height=FALSE)
 root.mainloop()
