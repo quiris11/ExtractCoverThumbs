@@ -116,7 +116,8 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite):
                 apnx_builder.write_apnx(mobi_path, apnx_path)
 
 
-def extract_cover_thumbs(is_verbose, is_overwrite, is_apnx, kindlepath, docs):
+def extract_cover_thumbs(is_verbose, is_overwrite, is_apnx, kindlepath, docs,
+                         is_azw):
     try:
         dir_list = os.listdir(docs)
         dir_list.sort()
@@ -131,9 +132,14 @@ def extract_cover_thumbs(is_verbose, is_overwrite, is_apnx, kindlepath, docs):
               'Probably not a Kindle Paperwhite/Touch device.')
         return 1
     print("START of extracting cover thumbnails...")
-    print("NOTICE! AZW files are IGNORED!")
+    print("Notice! AZW files by default are ignored. "
+          "Use -z option to override.")
+    if is_azw:
+        extensions = ('.azw', '.azw3', '.mobi')
+    else:
+        extensions = ('.azw3', '.mobi')
     for f in dir_list:
-        if f.lower().endswith(('.azw3', '.mobi')):
+        if f.lower().endswith(extensions):
             fide = f.decode(sys.getfilesystemencoding())
             mobi_path = os.path.join(docs, f)
             if is_verbose:
