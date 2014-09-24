@@ -31,6 +31,7 @@ class App:
                 self.stext.insert(END, str)
 
         self.is_apnx = BooleanVar()
+        self.is_azw = BooleanVar()
         self.is_log = BooleanVar()
         self.is_overwrite = BooleanVar()
         self.kindlepath = StringVar()
@@ -73,6 +74,15 @@ class App:
         self.over_checkbox.deselect()
         self.over_checkbox.pack(side=TOP, anchor=NW)
 
+        self.azw_checkbox = Checkbutton(
+            self.frame2,
+            text="Extract covers from AZW files (for special needs)?",
+            variable=self.is_azw
+        )
+
+        self.azw_checkbox.deselect()
+        self.azw_checkbox.pack(side=TOP, anchor=NW)
+
         self.frame3 = Frame(master, borderwidth=5)
         self.frame3.pack(side=TOP, anchor=W)
 
@@ -103,7 +113,7 @@ class App:
         self.frame.update_idletasks()
         ec = extract_cover_thumbs(self.is_log.get(), self.is_overwrite.get(),
                                   self.is_apnx.get(), self.kindlepath.get(),
-                                  self.docs)
+                                  self.docs, self.is_azw)
         if ec == 0:
             self.status.set('Process finished.')
         elif ec == 1:
