@@ -37,6 +37,9 @@ parser.add_argument("-a", "--apnx", help="also generate APNX files",
                     action="store_true")
 parser.add_argument("-z", "--azw", help="also extract covers from AZW files",
                     action="store_true")
+parser.add_argument('-d', '--days', nargs='?', metavar='DAYS', const='7',
+                    help='only "younger" ebooks than specified DAYS will '
+                    'be processed (default: 7 days).')
 args = parser.parse_args()
 
 kindlepth = args.kindle_directory
@@ -44,4 +47,4 @@ docs = os.path.join(kindlepth, 'documents')
 
 if __name__ == '__main__':
     sys.exit(extract_cover_thumbs(args.verbose, args.overwrite, args.apnx,
-             kindlepth, docs, args.azw))
+             kindlepth, docs, args.azw, args.days))

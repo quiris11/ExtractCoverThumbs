@@ -14,6 +14,7 @@ from __future__ import print_function
 import sys
 import os
 import KindleUnpack
+from datetime import datetime
 from apnx import APNXBuilder
 
 from imghdr import what
@@ -117,7 +118,7 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite):
 
 
 def extract_cover_thumbs(is_verbose, is_overwrite, is_apnx, kindlepath, docs,
-                         is_azw):
+                         is_azw, days):
     try:
         dir_list = os.listdir(docs)
         dir_list.sort()
@@ -138,8 +139,18 @@ def extract_cover_thumbs(is_verbose, is_overwrite, is_apnx, kindlepath, docs,
         extensions = ('.azw', '.azw3', '.mobi')
     else:
         extensions = ('.azw3', '.mobi')
+    dtt = datetime.today()
     for f in dir_list:
-        if f.lower().endswith(extensions):
+        if days is not None:
+            days = int(days)
+            dt = os.path.getctime(os.path.join(docs, f))
+            dt = datetime.fromtimestamp(dt).strftime('%Y-%m-%d')
+            dt = datetime.strptime(dt, '%Y-%m-%d')
+            diff = (dtt-dt).days
+        else:
+            diff = 0
+            days = 0
+        if f.lower().endswith(extensions) and diff <= days:
             fide = f.decode(sys.getfilesystemencoding())
             mobi_path = os.path.join(docs, f)
             if is_verbose:
