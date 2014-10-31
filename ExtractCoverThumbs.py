@@ -60,7 +60,7 @@ def get_cover_image(section, mh, metadata, doctype, file, fide, is_verbose):
             imgnames.append(i)
         if len(imgnames)-1 == int(cover_offset):
             cover = Image.open(BytesIO(data))
-            cover.thumbnail((220, 330), Image.ANTIALIAS)
+            cover.thumbnail((430, 470), Image.ANTIALIAS)
             cover = cover.convert('L')
             if doctype == 'PDOC':
                 pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+45),
