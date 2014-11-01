@@ -60,10 +60,10 @@ def get_cover_image(section, mh, metadata, doctype, file, fide, is_verbose):
             imgnames.append(i)
         if len(imgnames)-1 == int(cover_offset):
             cover = Image.open(BytesIO(data))
-            cover.thumbnail((430, 470), Image.ANTIALIAS)
+            cover.thumbnail((283, 415), Image.ANTIALIAS)
             cover = cover.convert('L')
             if doctype == 'PDOC':
-                pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+45),
+                pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+55),
                                        "white")
                 pdoc_cover.paste(cover, (0, 0))
                 if is_verbose:
@@ -140,17 +140,20 @@ def extract_cover_thumbs(is_verbose, is_overwrite, is_apnx, kindlepath, docs,
     else:
         extensions = ('.azw3', '.mobi')
     dtt = datetime.today()
+    if days is not None:
+        days_int = int(days)
+        print('Notice! Processing files not older than ' + str(days_int) +
+              ' days.')
+    else:
+        days_int = 0
+        diff = 0
     for f in dir_list:
         if days is not None:
-            days = int(days)
             dt = os.path.getctime(os.path.join(docs, f))
             dt = datetime.fromtimestamp(dt).strftime('%Y-%m-%d')
             dt = datetime.strptime(dt, '%Y-%m-%d')
             diff = (dtt-dt).days
-        else:
-            diff = 0
-            days = 0
-        if f.lower().endswith(extensions) and diff <= days:
+        if f.lower().endswith(extensions) and diff <= days_int:
             fide = f.decode(sys.getfilesystemencoding())
             mobi_path = os.path.join(docs, f)
             if is_verbose:
