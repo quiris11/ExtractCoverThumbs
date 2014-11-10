@@ -10,6 +10,15 @@
 # to your Kindle Paperwhite.
 #
 
+
+__license__ = 'GNU Affero GPL v3'
+__copyright__ = '2014, Robert Błaut listy@blaut.biz'
+__appname__ = u'ExtractCoverThumbs'
+numeric_version = (0, 7)
+__version__ = u'.'.join(map(unicode, numeric_version))
+__author__ = u'Robert Błaut <listy@blaut.biz>'
+
+
 from ExtractCoverThumbs import extract_cover_thumbs
 from Tkinter import *
 from ScrolledText import ScrolledText
@@ -34,9 +43,11 @@ class App:
         self.is_apnx = BooleanVar()
         self.is_azw = BooleanVar()
         self.is_log = BooleanVar()
+        self.nac = IntVar()
         self.is_overwrite = BooleanVar()
         self.kindlepath = StringVar()
         self.status = StringVar()
+        self.days = StringVar()
 
         self.frame = Frame(master, borderwidth=5)
         self.frame.pack(side=TOP, anchor=W)
@@ -54,7 +65,6 @@ class App:
             self.frame2, text="Write detailed informations in Message Window?",
             variable=self.is_log
         )
-
         self.log_checkbox.deselect()
         self.log_checkbox.pack(side=TOP, anchor=NW)
 
@@ -62,9 +72,9 @@ class App:
             self.frame2, text="Generate book page numbers (APNX file)?",
             variable=self.is_apnx
         )
-
         self.apnx_checkbox.deselect()
         self.apnx_checkbox.pack(side=TOP, anchor=NW)
+
 
         self.over_checkbox = Checkbutton(
             self.frame2,
@@ -80,9 +90,24 @@ class App:
             text="Extract covers from AZW files (for special needs)?",
             variable=self.is_azw
         )
-
         self.azw_checkbox.deselect()
         self.azw_checkbox.pack(side=TOP, anchor=NW)
+
+        self.days_entry = Entry(
+            self.frame2, width=4,
+            textvariable=self.days,
+            state=DISABLED
+        )
+        self.days_entry.pack(side=RIGHT, anchor=NW)
+
+        self.days_checkbox = Checkbutton(
+            self.frame2,
+            text="Process only younger files than days provided: ",
+            variable=self.nac,
+            command=self.naccheck
+        )
+        self.days_checkbox.deselect()
+        self.days_checkbox.pack(side=TOP, anchor=NW)
 
         self.frame3 = Frame(master, borderwidth=5)
         self.frame3.pack(side=TOP, anchor=W)
@@ -107,6 +132,13 @@ class App:
 
         sys.stdout = StdoutRedirector(self.stext)
 
+    def naccheck(self):
+        if self.nac.get() == 0:
+            self.days_entry.delete(0, END)
+            self.days_entry.configure(state='disabled')
+        else:
+            self.days_entry.configure(state='normal')
+
     def run(self):
         self.docs = os.path.join(self.kindlepath.get(), 'documents')
         self.stext.delete(1.0, END)
@@ -119,9 +151,18 @@ class App:
             parent=root
         )
         self.frame.update_idletasks()
-        ec = extract_cover_thumbs(self.is_log.get(), self.is_overwrite.get(),
-                                  self.is_apnx.get(), self.kindlepath.get(),
-                                  self.docs, self.is_azw, None)
+        if self.days.get() == '':
+            ec = extract_cover_thumbs(
+                self.is_log.get(), self.is_overwrite.get(),
+                self.is_apnx.get(), self.kindlepath.get(),
+                self.docs, self.is_azw, None
+            )
+        else:
+            ec = extract_cover_thumbs(
+                self.is_log.get(), self.is_overwrite.get(),
+                self.is_apnx.get(), self.kindlepath.get(),
+                self.docs, self.is_azw, self.days.get()
+            )
         if ec == 0:
             self.status.set('Process finished.')
             tkMessageBox.showwarning(
@@ -149,6 +190,6 @@ class App:
 
 root = Tk()
 app = App(root)
-root.title('ExtractCoverThumbs 0.6')
+root.title('ExtractCoverThumbs ' + __version__)
 root.resizable(width=FALSE, height=FALSE)
 root.mainloop()
