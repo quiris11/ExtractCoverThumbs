@@ -14,6 +14,7 @@ from ExtractCoverThumbs import extract_cover_thumbs
 from Tkinter import *
 from ScrolledText import ScrolledText
 import tkFileDialog
+import tkMessageBox
 import sys
 import os
 
@@ -110,14 +111,34 @@ class App:
         self.docs = os.path.join(self.kindlepath.get(), 'documents')
         self.stext.delete(1.0, END)
         self.status.set('Start processing your books...')
+        tkMessageBox.showwarning(
+            'Starting...',
+            'Process is starting. Click OK button and wait for '+
+            'finish confirmation...',
+            icon='question',
+            parent=root
+        )
         self.frame.update_idletasks()
         ec = extract_cover_thumbs(self.is_log.get(), self.is_overwrite.get(),
                                   self.is_apnx.get(), self.kindlepath.get(),
-                                  self.docs, self.is_azw)
+                                  self.docs, self.is_azw, None)
         if ec == 0:
             self.status.set('Process finished.')
+            tkMessageBox.showwarning(
+                'Finished...',
+                'Process finished. Check Message Window for details...',
+                icon='info',
+                parent=root
+            )
         elif ec == 1:
-            self.status.set('Process finished with problems!')
+            self.status.set('Process finished with PROBLEMS!')
+            tkMessageBox.showwarning(
+                'Finished...',
+                'Process finished with PROBLEMS! ' +
+                'Check Message Window for details...' ,
+                icon='warning',
+                parent=root
+            )
 
     def askdirectory(self):
         if sys.platform == 'win32':
