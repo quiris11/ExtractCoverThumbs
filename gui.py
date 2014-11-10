@@ -14,7 +14,7 @@
 __license__ = 'GNU Affero GPL v3'
 __copyright__ = '2014, Robert Błaut listy@blaut.biz'
 __appname__ = u'ExtractCoverThumbs'
-numeric_version = (0, 7)
+numeric_version = (0, 8)
 __version__ = u'.'.join(map(unicode, numeric_version))
 __author__ = u'Robert Błaut <listy@blaut.biz>'
 
