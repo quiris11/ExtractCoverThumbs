@@ -77,6 +77,10 @@ class APNXBuilder(object):
             pages = self.get_pages_fast(mobi_file_path)
         if not pages:
             print('Could not generate page mapping.')
+        if len(pages) > 65536:
+            print('Pages over limit in "%s" file. '
+                  'Unable to write apnx file...' % mobi_file_path)
+            return
 
         # Generate the APNX file from the page mapping.
         apnx = self.generate_apnx(pages, apnx_meta)
