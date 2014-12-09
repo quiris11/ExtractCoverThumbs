@@ -24,3 +24,7 @@ setup(
 # build on Mac:
 # pyinstaller -Fn ExtractCoverThumbs_con ~/github/ExtractCoverThumbs/__main__.py
 # pyinstaller -Fn ExtractCoverThumbs_app  --windowed ~/github/ExtractCoverThumbs/gui.py
+
+# build on Windows:
+# 1) turn off antivirus
+# 2) python setup.py py2exe
