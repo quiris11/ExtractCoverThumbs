@@ -10,6 +10,7 @@ Generates and writes an APNX page mapping file.
 
 import struct
 import os
+import sys
 import KindleUnpack
 
 from header import PdbHeaderReader
@@ -86,6 +87,8 @@ class APNXBuilder(object):
         apnx = self.generate_apnx(pages, apnx_meta)
 
         # Write the APNX.
+        if sys.platform == 'win32':
+            apnx_path = '\\\\?\\' + apnx_path
         with open(apnx_path, 'wb') as apnxf:
             apnxf.write(apnx)
 
