@@ -31,15 +31,18 @@ class APNXBuilder(object):
         apnx_meta = {'guid': str(uuid.uuid4()).replace('-', '')[:8], 'asin':
                      '', 'cdetype': 'EBOK', 'format': 'MOBI_7', 'acr': ''}
 
-        with open(mobi_file_path, 'rb') as mf:
-            ident = PdbHeaderReader(mf).identity()
-            if ident != 'BOOKMOBI':
-                # Check that this is really a MOBI file.
-                print('ERROR! Not a valid MOBI file "%s"'
-                      % os.path.basename(mobi_file_path))
-                return 1
-            apnx_meta['acr'] = str(PdbHeaderReader(mf).name())
-
+        try:
+            with open(mobi_file_path, 'rb') as mf:
+                ident = PdbHeaderReader(mf).identity()
+                if ident != 'BOOKMOBI':
+                    # Check that this is really a MOBI file.
+                    print('ERROR! Not a valid MOBI file "%s"'
+                          % os.path.basename(mobi_file_path))
+                    return 1
+                apnx_meta['acr'] = str(PdbHeaderReader(mf).name())
+        except:
+            print('Error! Unable to open file %s' % mobi_file_path)
+            return 1
         # We'll need the PDB name, the MOBI version, and some metadata to make
         # FW 3.4 happy with KF8 files...
         with open(mobi_file_path, 'rb') as mf:
