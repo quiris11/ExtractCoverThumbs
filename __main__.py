@@ -23,6 +23,7 @@ import argparse
 import os
 import sys
 from ExtractCoverThumbs import extract_cover_thumbs
+from distutils.util import strtobool
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-V', '--version', action='version',
@@ -45,6 +46,19 @@ args = parser.parse_args()
 kindlepth = args.kindle_directory
 docs = os.path.join(kindlepth, 'documents')
 
+
+def user_yes_no_query(question):
+    sys.stdout.write('%s [y/n]\n' % question)
+    while True:
+        try:
+            return strtobool(raw_input().lower())
+        except ValueError:
+            sys.stdout.write('Please respond with \'y\' or \'n\'.\n')
+
 if __name__ == '__main__':
-    sys.exit(extract_cover_thumbs(args.verbose, args.overwrite, args.apnx,
-             kindlepth, docs, args.azw, args.days))
+    extract_cover_thumbs(args.verbose, args.overwrite, args.apnx,
+                         kindlepth, docs, args.azw, args.days)
+    if sys.platform == 'darwin':
+        ans_ok = user_yes_no_query('Eject Kindle?')
+        if ans_ok:
+            os.system('diskutil eject ' + kindlepth)
