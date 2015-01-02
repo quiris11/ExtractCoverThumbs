@@ -75,7 +75,6 @@ class App:
         self.apnx_checkbox.deselect()
         self.apnx_checkbox.pack(side=TOP, anchor=NW)
 
-
         self.over_checkbox = Checkbutton(
             self.frame2,
             text="Overwrite Cover Thumbnails existing on a device?",
@@ -145,7 +144,7 @@ class App:
         self.status.set('Start processing your books...')
         tkMessageBox.showwarning(
             'Starting...',
-            'Process is starting. Click OK button and wait for '+
+            'Process is starting. Click OK button and wait for ' +
             'finish confirmation...',
             icon='question',
             parent=root
@@ -176,7 +175,7 @@ class App:
             tkMessageBox.showwarning(
                 'Finished...',
                 'Process finished with PROBLEMS! ' +
-                'Check Message Window for details...' ,
+                'Check Message Window for details...',
                 icon='warning',
                 parent=root
             )
