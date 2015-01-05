@@ -91,7 +91,7 @@ class APNXBuilder(object):
 
         # Write the APNX.
         if sys.platform == 'win32':
-            apnx_path = '\\\\?\\' + apnx_path
+            apnx_path = '\\\\?\\' + apnx_path.replace('/', '\\')
         with open(apnx_path, 'wb') as apnxf:
             apnxf.write(apnx)
 
