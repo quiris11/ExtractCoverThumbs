@@ -147,15 +147,15 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
         days_int = 0
         diff = 0
     if not skip_apnx:
+        print("START of generating book page numbers (APNX files)...")
         generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx,
                             days)
+        print("FINISH of generating book page numbers (APNX files)...")
     if not os.path.isdir(os.path.join(kindlepath, 'system', 'thumbnails')):
         print('* UNABLE to continue... Thumbnails directory does not exist. '
               'Probably not a Kindle Paperwhite/Touch device.')
         return 1
     print("START of extracting cover thumbnails...")
-    print("Notice! AZW files by default are ignored. "
-          "Use -z option to override.")
     if is_azw:
         extensions = ('.azw', '.azw3', '.mobi')
     else:
