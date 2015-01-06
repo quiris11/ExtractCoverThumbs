@@ -62,45 +62,6 @@ class App:
 
         self.frame2 = Frame(master, borderwidth=5)
         self.frame2.pack(side=TOP, pady=5)
-        self.log_checkbox = Checkbutton(
-            self.frame2, text="Write detailed informations in Message Window?",
-            variable=self.is_log
-        )
-        self.log_checkbox.deselect()
-        self.log_checkbox.pack(side=TOP, anchor=NW)
-
-        self.apnx_checkbox = Checkbutton(
-            self.frame2, text="Skip generating book page numbers?",
-            variable=self.skip_apnx
-        )
-        self.apnx_checkbox.deselect()
-        self.apnx_checkbox.pack(side=TOP, anchor=NW)
-
-        self.over_thumbs_checkbox = Checkbutton(
-            self.frame2,
-            text="Overwrite cover thumbnails existing on a device?",
-            variable=self.is_overwrite_thumbs
-        )
-
-        self.over_thumbs_checkbox.deselect()
-        self.over_thumbs_checkbox.pack(side=TOP, anchor=NW)
-
-        self.over_apnx_checkbox = Checkbutton(
-            self.frame2,
-            text="Overwrite book page numbers existing on a device?",
-            variable=self.is_overwrite_apnx
-        )
-
-        self.over_apnx_checkbox.deselect()
-        self.over_apnx_checkbox.pack(side=TOP, anchor=NW)
-
-        self.azw_checkbox = Checkbutton(
-            self.frame2,
-            text="Extract covers from AZW files (for special needs)?",
-            variable=self.is_azw
-        )
-        self.azw_checkbox.deselect()
-        self.azw_checkbox.pack(side=TOP, anchor=NW)
 
         self.days_entry = Entry(
             self.frame2, width=4,
@@ -117,6 +78,49 @@ class App:
         )
         self.days_checkbox.deselect()
         self.days_checkbox.pack(side=TOP, anchor=NW)
+
+        self.log_checkbox = Checkbutton(
+            self.frame2, text="Write detailed informations in Message Window?",
+            variable=self.is_log
+        )
+        self.log_checkbox.deselect()
+        self.log_checkbox.pack(side=TOP, anchor=NW)
+
+        self.apnx_checkbox = Checkbutton(
+            self.frame2, text="Skip generating book page numbers?",
+            variable=self.skip_apnx
+        )
+        self.apnx_checkbox.deselect()
+        self.apnx_checkbox.pack(side=TOP, anchor=NW)
+
+        self.labelframe = LabelFrame(self.frame2, text=" For special needs. Use with caution! ", padx=5, pady=5)
+        self.labelframe.pack(fill="both", expand="yes", pady=10)
+
+        self.over_thumbs_checkbox = Checkbutton(
+            self.labelframe,
+            text="Overwrite cover thumbnails existing on a device?",
+            variable=self.is_overwrite_thumbs
+        )
+
+        self.over_thumbs_checkbox.deselect()
+        self.over_thumbs_checkbox.pack(side=TOP, anchor=NW)
+
+        self.over_apnx_checkbox = Checkbutton(
+            self.labelframe,
+            text="Overwrite book page numbers existing on a device?",
+            variable=self.is_overwrite_apnx
+        )
+
+        self.over_apnx_checkbox.deselect()
+        self.over_apnx_checkbox.pack(side=TOP, anchor=NW)
+
+        self.azw_checkbox = Checkbutton(
+            self.labelframe,
+            text="Extract covers from AZW files?",
+            variable=self.is_azw
+        )
+        self.azw_checkbox.deselect()
+        self.azw_checkbox.pack(side=TOP, anchor=NW)
 
         self.frame3 = Frame(master, borderwidth=5)
         self.frame3.pack(side=TOP, anchor=W)
