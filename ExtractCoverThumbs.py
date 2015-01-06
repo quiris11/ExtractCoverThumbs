@@ -95,10 +95,21 @@ def fix_generated_thumbs(file, is_verbose):
     return cover
 
 
-def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx):
+def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
     apnx_builder = APNXBuilder()
+    if days is not None:
+        dtt = datetime.today()
+        days_int = int(days)
+    else:
+        days_int = 0
+        diff = 0
     for f in dir_list:
-        if f.lower().endswith(('.azw3', '.mobi', '.azw')):
+        if days is not None:
+            dt = os.path.getctime(os.path.join(docs, f))
+            dt = datetime.fromtimestamp(dt).strftime('%Y-%m-%d')
+            dt = datetime.strptime(dt, '%Y-%m-%d')
+            diff = (dtt-dt).days
+        if f.lower().endswith(('.azw3', '.mobi', '.azw')) and diff <= days_int:
             mobi_path = os.path.join(docs, f)
             if os.path.isdir(os.path.join(docs,
                                           os.path.splitext(f)[0] + '.sdr')):
@@ -128,8 +139,16 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
         print('* ERROR! No Kindle device found in a specified directory: ' +
               kindlepath)
         return 1
+    if days is not None:
+        dtt = datetime.today()
+        days_int = int(days)
+        print('Notice! Processing files not older than ' + days + ' days.')
+    else:
+        days_int = 0
+        diff = 0
     if not skip_apnx:
-        generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx)
+        generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx,
+                            days)
     if not os.path.isdir(os.path.join(kindlepath, 'system', 'thumbnails')):
         print('* UNABLE to continue... Thumbnails directory does not exist. '
               'Probably not a Kindle Paperwhite/Touch device.')
@@ -141,14 +160,6 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
         extensions = ('.azw', '.azw3', '.mobi')
     else:
         extensions = ('.azw3', '.mobi')
-    dtt = datetime.today()
-    if days is not None:
-        days_int = int(days)
-        print('Notice! Processing files not older than ' + str(days_int) +
-              ' days.')
-    else:
-        days_int = 0
-        diff = 0
     for f in dir_list:
         if days is not None:
             dt = os.path.getctime(os.path.join(docs, f))
