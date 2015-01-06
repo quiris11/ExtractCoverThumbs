@@ -158,7 +158,7 @@ class App:
 
         self.msg1 = 'Message Window: \n'
         self.stext = ScrolledText(self.frame4, bd=1, wrap=WORD,
-                                  height=20, relief=RIDGE)
+                                  height=25, width=100, relief=RIDGE)
         if sys.platform == 'win32':
             self.stext.config(font=('Courier', 9, 'normal'))
         self.stext.pack()
