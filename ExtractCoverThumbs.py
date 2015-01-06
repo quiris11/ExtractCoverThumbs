@@ -117,8 +117,10 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx):
                 apnx_builder.write_apnx(mobi_path, apnx_path)
 
 
-def extract_cover_thumbs(is_verbose, is_overwrite_thumbs, is_overwrite_apnx,
+def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
+                         is_overwrite_amzn_thumbs, is_overwrite_apnx,
                          skip_apnx, kindlepath, docs, is_azw, days):
+    is_verbose = not is_silent
     try:
         dir_list = os.listdir(docs)
         dir_list.sort()

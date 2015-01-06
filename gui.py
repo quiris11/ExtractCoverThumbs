@@ -80,7 +80,7 @@ class App:
         self.days_checkbox.pack(side=TOP, anchor=NW)
 
         self.log_checkbox = Checkbutton(
-            self.frame2, text="Write detailed informations in Message Window?",
+            self.frame2, text="Write less informations in Message Window?",
             variable=self.is_log
         )
         self.log_checkbox.deselect()
