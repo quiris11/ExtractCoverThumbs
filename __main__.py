@@ -32,9 +32,11 @@ parser.add_argument("kindle_directory", help="directory where is a Kindle"
                     " Paperwhite mounted")
 parser.add_argument("-v", "--verbose", help="print more informations",
                     action="store_true")
-parser.add_argument("-o", "--overwrite", help="overwrite thumbnails",
+parser.add_argument("--overwrite-thumbs", help="overwrite cover thumbnails",
                     action="store_true")
-parser.add_argument("-a", "--apnx", help="also generate APNX files",
+parser.add_argument("--overwrite-apnx", help="overwrite APNX files",
+                    action="store_true")
+parser.add_argument("-s", "--skip-apnx", help="skip generating APNX files",
                     action="store_true")
 parser.add_argument("-z", "--azw", help="also extract covers from AZW files",
                     action="store_true")
@@ -56,7 +58,8 @@ def user_yes_no_query(question):
             sys.stdout.write('Please respond with \'y\' or \'n\'.\n')
 
 if __name__ == '__main__':
-    extract_cover_thumbs(args.verbose, args.overwrite, args.apnx,
+    extract_cover_thumbs(args.verbose, args.overwrite_thumbs,
+                         args.overwrite_apnx, args.skip_apnx,
                          kindlepth, docs, args.azw, args.days)
     if sys.platform == 'darwin':
         ans_ok = user_yes_no_query('Eject Kindle?')

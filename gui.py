@@ -40,11 +40,12 @@ class App:
             def write(self, str):
                 self.stext.insert(END, str)
 
-        self.is_apnx = BooleanVar()
+        self.skip_apnx = BooleanVar()
         self.is_azw = BooleanVar()
         self.is_log = BooleanVar()
         self.nac = IntVar()
-        self.is_overwrite = BooleanVar()
+        self.is_overwrite_thumbs = BooleanVar()
+        self.is_overwrite_apnx = BooleanVar()
         self.kindlepath = StringVar()
         self.status = StringVar()
         self.days = StringVar()
@@ -69,20 +70,29 @@ class App:
         self.log_checkbox.pack(side=TOP, anchor=NW)
 
         self.apnx_checkbox = Checkbutton(
-            self.frame2, text="Generate book page numbers (APNX file)?",
-            variable=self.is_apnx
+            self.frame2, text="Skip generating book page numbers?",
+            variable=self.skip_apnx
         )
         self.apnx_checkbox.deselect()
         self.apnx_checkbox.pack(side=TOP, anchor=NW)
 
-        self.over_checkbox = Checkbutton(
+        self.over_thumbs_checkbox = Checkbutton(
             self.frame2,
-            text="Overwrite Cover Thumbnails existing on a device?",
-            variable=self.is_overwrite
+            text="Overwrite cover thumbnails existing on a device?",
+            variable=self.is_overwrite_thumbs
         )
 
-        self.over_checkbox.deselect()
-        self.over_checkbox.pack(side=TOP, anchor=NW)
+        self.over_thumbs_checkbox.deselect()
+        self.over_thumbs_checkbox.pack(side=TOP, anchor=NW)
+
+        self.over_apnx_checkbox = Checkbutton(
+            self.frame2,
+            text="Overwrite book page numbers existing on a device?",
+            variable=self.is_overwrite_apnx
+        )
+
+        self.over_apnx_checkbox.deselect()
+        self.over_apnx_checkbox.pack(side=TOP, anchor=NW)
 
         self.azw_checkbox = Checkbutton(
             self.frame2,
@@ -152,14 +162,16 @@ class App:
         self.frame.update_idletasks()
         if self.days.get() == '':
             ec = extract_cover_thumbs(
-                self.is_log.get(), self.is_overwrite.get(),
-                self.is_apnx.get(), self.kindlepath.get(),
+                self.is_log.get(), self.is_overwrite_thumbs.get(),
+                self.is_overwrite_apnx.get(),
+                self.skip_apnx.get(), self.kindlepath.get(),
                 self.docs, self.is_azw, None
             )
         else:
             ec = extract_cover_thumbs(
-                self.is_log.get(), self.is_overwrite.get(),
-                self.is_apnx.get(), self.kindlepath.get(),
+                self.is_log.get(), self.is_overwrite_thumbs.get(),
+                self.is_overwrite_apnx.get(),
+                self.skip_apnx.get(), self.kindlepath.get(),
                 self.docs, self.is_azw, self.days.get()
             )
         if ec == 0:

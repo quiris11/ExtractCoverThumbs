@@ -95,7 +95,7 @@ def fix_generated_thumbs(file, is_verbose):
     return cover
 
 
-def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite):
+def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx):
     apnx_builder = APNXBuilder()
     for f in dir_list:
         if f.lower().endswith(('.azw3', '.mobi', '.azw')):
@@ -110,15 +110,15 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite):
                 apnx_path = os.path.join(
                     docs, os.path.splitext(f)[0] + '.apnx'
                 )
-            if not os.path.isfile(apnx_path) or is_overwrite:
+            if not os.path.isfile(apnx_path) or is_overwrite_apnx:
                 if is_verbose:
                     print('* Generating APNX file for "%s"'
                           % f.decode(sys.getfilesystemencoding()))
                 apnx_builder.write_apnx(mobi_path, apnx_path)
 
 
-def extract_cover_thumbs(is_verbose, is_overwrite, is_apnx, kindlepath, docs,
-                         is_azw, days):
+def extract_cover_thumbs(is_verbose, is_overwrite_thumbs, is_overwrite_apnx,
+                         skip_apnx, kindlepath, docs, is_azw, days):
     try:
         dir_list = os.listdir(docs)
         dir_list.sort()
@@ -126,8 +126,8 @@ def extract_cover_thumbs(is_verbose, is_overwrite, is_apnx, kindlepath, docs,
         print('* ERROR! No Kindle device found in a specified directory: ' +
               kindlepath)
         return 1
-    if is_apnx:
-        generate_apnx_files(dir_list, docs, is_verbose, is_overwrite)
+    if not skip_apnx:
+        generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx)
     if not os.path.isdir(os.path.join(kindlepath, 'system', 'thumbnails')):
         print('* UNABLE to continue... Thumbnails directory does not exist. '
               'Probably not a Kindle Paperwhite/Touch device.')
@@ -186,7 +186,7 @@ def extract_cover_thumbs(is_verbose, is_overwrite, is_apnx, kindlepath, docs,
                 kindlepath, 'system', 'thumbnails',
                 'thumbnail_%s_%s_portrait.jpg' % (asin, doctype)
             )
-            if not os.path.isfile(thumbpath) or is_overwrite:
+            if not os.path.isfile(thumbpath) or is_overwrite_thumbs:
                 if is_verbose:
                     print('Extracting Cover Thumb:', end=' ')
                 cover = get_cover_image(section, mh, metadata, doctype, f,
