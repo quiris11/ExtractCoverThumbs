@@ -93,7 +93,11 @@ class App:
         self.apnx_checkbox.deselect()
         self.apnx_checkbox.pack(side=TOP, anchor=NW)
 
-        self.labelframe = LabelFrame(self.frame2, text=" For special needs. Use with caution! ", padx=5, pady=5)
+        self.labelframe = LabelFrame(
+            self.frame2,
+            text=" For special needs. Use with caution! ",
+            padx=5, pady=5
+        )
         self.labelframe.pack(fill="both", expand="yes", pady=10)
 
         self.over_thumbs_checkbox = Checkbutton(
