@@ -93,7 +93,8 @@ class App:
         self.log_checkbox.pack(side=TOP, anchor=NW)
 
         self.apnx_checkbox = Checkbutton(
-            self.frame2, text="Skip generating book page numbers?",
+            self.frame2, text="Skip generating book page numbers "
+                              "(APNX files)?",
             variable=self.skip_apnx
         )
         self.apnx_checkbox.deselect()
