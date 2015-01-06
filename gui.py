@@ -44,7 +44,8 @@ class App:
         self.is_azw = BooleanVar()
         self.is_log = BooleanVar()
         self.nac = IntVar()
-        self.is_overwrite_thumbs = BooleanVar()
+        self.is_overwrite_pdoc_thumbs = BooleanVar()
+        self.is_overwrite_amzn_thumbs = BooleanVar()
         self.is_overwrite_apnx = BooleanVar()
         self.kindlepath = StringVar()
         self.status = StringVar()
@@ -63,15 +64,20 @@ class App:
         self.frame2 = Frame(master, borderwidth=5)
         self.frame2.pack(side=TOP, pady=5)
 
+        self.frame3 = Frame(
+            self.frame2,
+        )
+        self.frame3.pack(side=TOP, anchor=W)
+
         self.days_entry = Entry(
-            self.frame2, width=4,
+            self.frame3, width=4,
             textvariable=self.days,
             state=DISABLED
         )
         self.days_entry.pack(side=RIGHT, anchor=NW)
 
         self.days_checkbox = Checkbutton(
-            self.frame2,
+            self.frame3,
             text="Process only younger files than days provided: ",
             variable=self.nac,
             command=self.naccheck
@@ -100,18 +106,28 @@ class App:
         )
         self.labelframe.pack(fill="both", expand="yes", pady=10)
 
-        self.over_thumbs_checkbox = Checkbutton(
+        self.over_pdoc_thumbs_checkbox = Checkbutton(
             self.labelframe,
-            text="Overwrite cover thumbnails existing on a device?",
-            variable=self.is_overwrite_thumbs
+            text="Overwrite existing personal documents (PDOC) covers?",
+            variable=self.is_overwrite_pdoc_thumbs
         )
 
-        self.over_thumbs_checkbox.deselect()
-        self.over_thumbs_checkbox.pack(side=TOP, anchor=NW)
+        self.over_pdoc_thumbs_checkbox.deselect()
+        self.over_pdoc_thumbs_checkbox.pack(side=TOP, anchor=NW)
+
+        self.over_amzn_thumbs_checkbox = Checkbutton(
+            self.labelframe,
+            text="Overwrite existing amzn book (EBOK) and book sample (EBSP) "
+                 "covers?",
+            variable=self.is_overwrite_amzn_thumbs
+        )
+
+        self.over_amzn_thumbs_checkbox.deselect()
+        self.over_amzn_thumbs_checkbox.pack(side=TOP, anchor=NW)
 
         self.over_apnx_checkbox = Checkbutton(
             self.labelframe,
-            text="Overwrite book page numbers existing on a device?",
+            text="Overwrite existing book page numbers (APNX files)?",
             variable=self.is_overwrite_apnx
         )
 
@@ -170,14 +186,16 @@ class App:
         self.frame.update_idletasks()
         if self.days.get() == '':
             ec = extract_cover_thumbs(
-                self.is_log.get(), self.is_overwrite_thumbs.get(),
+                self.is_log.get(), self.is_overwrite_pdoc_thumbs.get(),
+                self.is_overwrite_amzn_thumbs.get(),
                 self.is_overwrite_apnx.get(),
                 self.skip_apnx.get(), self.kindlepath.get(),
                 self.docs, self.is_azw, None
             )
         else:
             ec = extract_cover_thumbs(
-                self.is_log.get(), self.is_overwrite_thumbs.get(),
+                self.is_log.get(), self.is_overwrite_pdoc_thumbs.get(),
+                self.is_overwrite_amzn_thumbs.get(),
                 self.is_overwrite_apnx.get(),
                 self.skip_apnx.get(), self.kindlepath.get(),
                 self.docs, self.is_azw, self.days.get()

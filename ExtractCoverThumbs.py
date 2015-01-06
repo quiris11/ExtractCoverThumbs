@@ -67,11 +67,11 @@ def get_cover_image(section, mh, metadata, doctype, file, fide, is_verbose):
                                        "white")
                 pdoc_cover.paste(cover, (0, 0))
                 if is_verbose:
-                    print('Done.')
+                    print('DONE!')
                 return pdoc_cover
             else:
                 if is_verbose:
-                    print('Done.')
+                    print('DONE!')
                 return cover
     return False
 
@@ -160,9 +160,9 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
             mobi_path = os.path.join(docs, f)
             if is_verbose:
                 try:
-                    print('* Processing "%s":' % fide, end=' ')
+                    print('* %s:' % fide, end=' ')
                 except:
-                    print('* Processing %r:' % fide, end=' ')
+                    print('* %r:' % fide, end=' ')
             with open(mobi_path, 'rb') as mf:
                 mobi_content = mf.read()
                 if mobi_content[60:68] != 'BOOKMOBI':
@@ -188,16 +188,20 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                 kindlepath, 'system', 'thumbnails',
                 'thumbnail_%s_%s_portrait.jpg' % (asin, doctype)
             )
-            if not os.path.isfile(thumbpath) or is_overwrite_thumbs:
+            if (not os.path.isfile(thumbpath) or
+                    (is_overwrite_pdoc_thumbs and doctype == 'PDOC') or
+                    (is_overwrite_amzn_thumbs and (
+                        doctype == 'EBOK' or doctype == 'EBSP'
+                    ))):
                 if is_verbose:
-                    print('Extracting Cover Thumb:', end=' ')
+                    print('EXTRACTING COVER:', end=' ')
                 cover = get_cover_image(section, mh, metadata, doctype, f,
                                         fide, is_verbose)
                 if not cover:
                     continue
                 cover.save(thumbpath)
             elif is_verbose:
-                print('Cover Thumb exists.')
+                print('skipped (cover present or overwriting not forced).')
     thumb_dir = os.path.join(kindlepath, 'system', 'thumbnails')
     thumb_list = os.listdir(thumb_dir)
     for c in thumb_list:

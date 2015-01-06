@@ -32,7 +32,13 @@ parser.add_argument("kindle_directory", help="directory where is a Kindle"
                     " Paperwhite mounted")
 parser.add_argument("-s", "--silent", help="print less informations",
                     action="store_true")
-parser.add_argument("--overwrite-thumbs", help="overwrite cover thumbnails",
+parser.add_argument("--overwrite-pdoc-thumbs",
+                    help="overwrite personal documents (PDOC) cover "
+                         "thumbnails",
+                    action="store_true")
+parser.add_argument("--overwrite-amzn-thumbs",
+                    help="overwrite amzn ebook (EBOK) and book sample (EBSP)"
+                         " cover thumbnails",
                     action="store_true")
 parser.add_argument("--overwrite-apnx", help="overwrite APNX files",
                     action="store_true")
