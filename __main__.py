@@ -5,7 +5,7 @@
 # GNU Affero GPLv3 or later.
 # Copyright © Robert Błaut. See NOTICE for more information.
 #
-# This is script extracts missing Cover Thumbnails from eBooks downloaded
+# This script extracts missing Cover Thumbnails from eBooks downloaded
 # from Amazon Personal Documents Service and side loads them
 # to your Kindle Paperwhite.
 #
@@ -22,6 +22,8 @@ __author__ = u'Robert Błaut <listy@blaut.biz>'
 import argparse
 import os
 import sys
+import csv
+from pages import get_pages
 from ExtractCoverThumbs import extract_cover_thumbs
 from distutils.util import strtobool
 
@@ -49,6 +51,9 @@ parser.add_argument("-z", "--azw", help="also extract covers from AZW files",
 parser.add_argument('-d', '--days', nargs='?', metavar='DAYS', const='7',
                     help='only "younger" ebooks than specified DAYS will '
                     'be processed (default: 7 days).')
+parser.add_argument("-p", "--pages",
+                    help="dump list of books with a rough number of pages",
+                    action="store_true")
 args = parser.parse_args()
 
 kindlepth = args.kindle_directory
@@ -64,10 +69,30 @@ def user_yes_no_query(question):
             sys.stdout.write('Please respond with \'y\' or \'n\'.\n')
 
 if __name__ == '__main__':
-    extract_cover_thumbs(args.silent, args.overwrite_pdoc_thumbs,
-                         args.overwrite_amzn_thumbs,
-                         args.overwrite_apnx, args.skip_apnx,
-                         kindlepth, docs, args.azw, args.days)
+    if args.pages:
+        print('* Dumping MOBI book pages CSV file...')
+        with open(os.path.join('mobi-book-pages.csv'), 'wb') as o:
+            csvwrite = csv.writer(o, delimiter=';', quotechar='"',
+                                  quoting=csv.QUOTE_NONNUMERIC)
+            csvwrite.writerow(['asin', 'author', 'title', 'pages'])
+        for dirpath, dirs, files in os.walk(docs):
+            for file in files:
+                file_extension = os.path.splitext(file)[1].lower()
+                if file_extension not in ['.mobi', '.azw', '.azw3']:
+                    continue
+                row = get_pages(dirpath, file)
+                if row is None:
+                    continue
+                with open(os.path.join('mobi-book-pages.csv'), 'ab') as o:
+                    csvwrite = csv.writer(o, delimiter=';', quotechar='"',
+                                          quoting=csv.QUOTE_NONNUMERIC)
+                    csvwrite.writerow(row)
+        print('* Dumping completed...')
+    else:
+        extract_cover_thumbs(args.silent, args.overwrite_pdoc_thumbs,
+                             args.overwrite_amzn_thumbs,
+                             args.overwrite_apnx, args.skip_apnx,
+                             kindlepth, docs, args.azw, args.days)
     if sys.platform == 'darwin':
         ans_ok = user_yes_no_query('Eject Kindle?')
         if ans_ok:

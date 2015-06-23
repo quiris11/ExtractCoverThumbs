@@ -5,7 +5,7 @@
 # GNU Affero GPLv3 or later.
 # Copyright © Robert Błaut. See NOTICE for more information.
 #
-# This is script extracts missing Cover Thumbnails from eBooks downloaded
+# This script extracts missing Cover Thumbnails from eBooks downloaded
 # from Amazon Personal Documents Service and side loads them
 # to your Kindle Paperwhite.
 #
