@@ -20,7 +20,7 @@ class APNXBuilder(object):
 
     """Create an APNX file using a pseudo page mapping."""
 
-    def write_apnx(self, mobi_file_path, apnx_path, method=None, page_count=0):
+    def write_apnx(self, mobi_file_path, apnx_path, page_count=0):
         """
         Write APNX file.
 

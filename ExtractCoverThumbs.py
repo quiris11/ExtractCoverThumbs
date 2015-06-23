@@ -13,9 +13,11 @@
 from __future__ import print_function
 import sys
 import os
+import csv
 import KindleUnpack
 from datetime import datetime
 from apnx import APNXBuilder
+from pages import find_exth
 
 from imghdr import what
 from io import BytesIO
@@ -129,7 +131,27 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
                 if is_verbose:
                     print('* Generating APNX file for "%s"'
                           % f.decode(sys.getfilesystemencoding()))
-                apnx_builder.write_apnx(mobi_path, apnx_path)
+                    if os.path.isfile(os.path.join('mobi-book-pages.txt')):
+                        with open(os.path.join('mobi-book-pages.txt')) as f:
+                            csvread = csv.reader(
+                                f, delimiter=';', quotechar='"',
+                                quoting=csv.QUOTE_ALL
+                            )
+                            with open(mobi_path, 'rb') as f:
+                                mobi_content = f.read()
+                            if mobi_content[60:68] != 'BOOKMOBI':
+                                print('* Invalid file format. Skipping...')
+                                asin = ''
+                            else:
+                                asin = find_exth(113, mobi_content)
+                            for i in csvread:
+                                if i[0] == asin:
+                                    apnx_builder.write_apnx(
+                                        mobi_path, apnx_path, int(i[3])
+                                    )
+                                    continue
+                else:
+                    apnx_builder.write_apnx(mobi_path, apnx_path)
 
 
 def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
