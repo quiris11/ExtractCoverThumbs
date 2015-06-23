@@ -78,7 +78,6 @@ if __name__ == '__main__':
                 csvread = csv.reader(f, delimiter=';', quotechar='"',
                                      quoting=csv.QUOTE_ALL)
                 asinlist = [row[0] for row in csvread]
-            print(asinlist)
         else:
             with open(mf, 'wb') as o:
                 csvwrite = csv.writer(o, delimiter=';', quotechar='"',
@@ -89,11 +88,13 @@ if __name__ == '__main__':
                 file_extension = os.path.splitext(file)[1].lower()
                 if file_extension not in ['.mobi', '.azw', '.azw3']:
                     continue
+                print('* Processing: ' + file.decode(
+                    sys.getfilesystemencoding()
+                ) + '...')
                 row = get_pages(dirpath, file)
                 if row is None:
                     continue
                 if row[0] in asinlist:
-                    print('* Present: ' + row[0])
                     continue
                 with open(mf, 'ab') as o:
                     csvwrite = csv.writer(o, delimiter=';', quotechar='"',
