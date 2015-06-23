@@ -146,6 +146,8 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
                                 asin = find_exth(113, mobi_content)
                             for i in csvread:
                                 if i[0] == asin:
+                                    print('  * Using %s pages defined '
+                                          'in mobi-book-pages.txt' % (i[3]))
                                     apnx_builder.write_apnx(
                                         mobi_path, apnx_path, int(i[3])
                                     )
