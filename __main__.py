@@ -69,12 +69,21 @@ def user_yes_no_query(question):
             sys.stdout.write('Please respond with \'y\' or \'n\'.\n')
 
 if __name__ == '__main__':
+    asinlist = []
+    mf = os.path.join('mobi-book-pages.txt')
     if args.pages:
         print('* Dumping MOBI book pages CSV file...')
-        with open(os.path.join('mobi-book-pages.csv'), 'wb') as o:
-            csvwrite = csv.writer(o, delimiter=';', quotechar='"',
-                                  quoting=csv.QUOTE_NONNUMERIC)
-            csvwrite.writerow(['asin', 'author', 'title', 'pages'])
+        if os.path.isfile(mf):
+            with open(mf) as f:
+                csvread = csv.reader(f, delimiter=';', quotechar='"',
+                                     quoting=csv.QUOTE_ALL)
+                asinlist = [row[0] for row in csvread]
+            print(asinlist)
+        else:
+            with open(mf, 'wb') as o:
+                csvwrite = csv.writer(o, delimiter=';', quotechar='"',
+                                      quoting=csv.QUOTE_ALL)
+                csvwrite.writerow(['asin', 'author', 'title', 'pages'])
         for dirpath, dirs, files in os.walk(docs):
             for file in files:
                 file_extension = os.path.splitext(file)[1].lower()
@@ -83,9 +92,12 @@ if __name__ == '__main__':
                 row = get_pages(dirpath, file)
                 if row is None:
                     continue
-                with open(os.path.join('mobi-book-pages.csv'), 'ab') as o:
+                if row[0] in asinlist:
+                    print('* Present: ' + row[0])
+                    continue
+                with open(mf, 'ab') as o:
                     csvwrite = csv.writer(o, delimiter=';', quotechar='"',
-                                          quoting=csv.QUOTE_NONNUMERIC)
+                                          quoting=csv.QUOTE_ALL)
                     csvwrite.writerow(row)
         print('* Dumping completed...')
     else:
@@ -97,3 +109,4 @@ if __name__ == '__main__':
         ans_ok = user_yes_no_query('Eject Kindle?')
         if ans_ok:
             os.system('diskutil eject ' + kindlepth)
+    #         os.system('diskutil eject ' + kindlepth)
