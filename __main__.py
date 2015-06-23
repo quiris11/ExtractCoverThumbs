@@ -51,8 +51,9 @@ parser.add_argument("-z", "--azw", help="also extract covers from AZW files",
 parser.add_argument('-d', '--days', nargs='?', metavar='DAYS', const='7',
                     help='only "younger" ebooks than specified DAYS will '
                     'be processed (default: 7 days).')
-parser.add_argument("-p", "--pages",
-                    help="dump list of books with a rough number of pages",
+parser.add_argument("--dump-pages",
+                    help="dump list of new books with a rough number of "
+                    "pages from last dump",
                     action="store_true")
 args = parser.parse_args()
 
@@ -71,7 +72,7 @@ def user_yes_no_query(question):
 if __name__ == '__main__':
     asinlist = []
     mf = os.path.join('mobi-book-pages.txt')
-    if args.pages:
+    if args.dump_pages:
         print('* Dumping MOBI book pages CSV file...')
         if os.path.isfile(mf):
             with open(mf) as f:
