@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
-Read the header data from a pdb file.
-'''
+"""Read the header data from a pdb file."""
 
 __license__ = 'GPL v3'
 __copyright__ = '2009, John Schember <john@nachtimwald.com>'
@@ -74,10 +72,7 @@ class PdbHeaderBuilder(object):
         )[:31].encode('ascii', 'replace')
 
     def build_header(self, section_lengths, out_stream):
-        '''
-        section_lengths = Lenght of each section in file.
-        '''
-
+        """section_length equal to lenght of each section in file."""
         now = int(time.time())
         nrecords = len(section_lengths)
 
