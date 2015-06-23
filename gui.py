@@ -20,7 +20,7 @@ __author__ = u'Robert Błaut <listy@blaut.biz>'
 
 
 from ExtractCoverThumbs import extract_cover_thumbs
-from Tkinter import *
+from Tkinter import *  # noqa
 from ScrolledText import ScrolledText
 import tkFileDialog
 import tkMessageBox

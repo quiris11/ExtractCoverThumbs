@@ -1,5 +1,5 @@
 from distutils.core import setup
-import py2exe
+import py2exe  # noqa
 import sys
 
 sys.argv.append('py2exe')
