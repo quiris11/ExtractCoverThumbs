@@ -50,21 +50,24 @@ def get_cover_image(section, mh, metadata, doctype, file, fide, is_verbose):
         imgtype = what(None, data)
         if imgtype is None and data[0:2] == b'\xFF\xD8':
             last = len(data)
-            while data[last-1:last] == b'\x00':
+            while data[last - 1:last] == b'\x00':
                 last -= 1
-            if data[last-2:last] == b'\xFF\xD9':
+            if data[last - 2:last] == b'\xFF\xD9':
                 imgtype = "jpeg"
         if imgtype is None:
             imgnames.append(None)
         else:
             imgnames.append(i)
-        if len(imgnames)-1 == int(cover_offset):
+        if len(imgnames) - 1 == int(cover_offset):
             cover = Image.open(BytesIO(data))
             cover.thumbnail((283, 415), Image.ANTIALIAS)
             cover = cover.convert('L')
             if doctype == 'PDOC':
-                pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+55),
-                                       "white")
+                pdoc_cover = Image.new(
+                    "L",
+                    (cover.size[0], cover.size[1] + 55),
+                    "white"
+                )
                 pdoc_cover.paste(cover, (0, 0))
                 if is_verbose:
                     print('DONE!')
@@ -86,7 +89,8 @@ def fix_generated_thumbs(file, is_verbose):
     except KeyError:
         if is_verbose:
             print('* Fixing generated thumbnail "%s"...' % (file))
-        pdoc_cover = Image.new("L", (cover.size[0], cover.size[1]+45), "white")
+        pdoc_cover = Image.new("L", (cover.size[0], cover.size[1] + 45),
+                               "white")
         pdoc_cover.paste(cover, (0, 0))
         return pdoc_cover
     if is_verbose:
@@ -108,7 +112,7 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
             dt = os.path.getctime(os.path.join(docs, f))
             dt = datetime.fromtimestamp(dt).strftime('%Y-%m-%d')
             dt = datetime.strptime(dt, '%Y-%m-%d')
-            diff = (dtt-dt).days
+            diff = (dtt - dt).days
         if f.lower().endswith(('.azw3', '.mobi', '.azw')) and diff <= days_int:
             mobi_path = os.path.join(docs, f)
             if os.path.isdir(os.path.join(docs,
@@ -165,7 +169,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
             dt = os.path.getctime(os.path.join(docs, f))
             dt = datetime.fromtimestamp(dt).strftime('%Y-%m-%d')
             dt = datetime.strptime(dt, '%Y-%m-%d')
-            diff = (dtt-dt).days
+            diff = (dtt - dt).days
         if f.lower().endswith(extensions) and diff <= days_int:
             fide = f.decode(sys.getfilesystemencoding())
             mobi_path = os.path.join(docs, f)

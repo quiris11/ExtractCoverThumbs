@@ -17,16 +17,17 @@ from header import PdbHeaderReader
 
 
 class APNXBuilder(object):
-    '''
-    Create an APNX file using a pseudo page mapping.
-    '''
+
+    """Create an APNX file using a pseudo page mapping."""
 
     def write_apnx(self, mobi_file_path, apnx_path, method=None, page_count=0):
-        '''
+        """
+        Write APNX file.
+
         If you want a fixed number of pages (such as from a custom column) then
         pass in a value to page_count, otherwise a count will be estimated
         using either the fast or accurate algorithm.
-        '''
+        """
         import uuid
         apnx_meta = {'guid': str(uuid.uuid4()).replace('-', '')[:8], 'asin':
                      '', 'cdetype': 'EBOK', 'format': 'MOBI_7', 'acr': ''}
@@ -106,7 +107,7 @@ class APNXBuilder(object):
             # fine for legacy mobi files, too. But, since they still handle
             # this one too, let's try not to break old devices, and keep using
             # the simple header ;).
-            content_header = '{"contentGuid":"%(guid)s","asin":"%(asin)s","cdeType":"%(cdetype)s","fileRevisionId":"1"}' % apnx_meta
+            content_header = '{"contentGuid":"%(guid)s","asin":"%(asin)s","cdeType":"%(cdetype)s","fileRevisionId":"1"}' % apnx_meta  # noqa
         page_header = '{"asin":"%(asin)s","pageMap":"(1,a,1)"}' % apnx_meta
 
         apnx += struct.pack('>I', 65537)
@@ -126,11 +127,13 @@ class APNXBuilder(object):
         return apnx
 
     def get_pages_exact(self, mobi_file_path, page_count):
-        '''
+        """
+        Get pages exact.
+
         Given a specified page count (such as from a custom column),
         create our array of pages for the apnx file by dividing by
         the content size of the book.
-        '''
+        """
         pages = []
         count = 0
 
@@ -151,9 +154,10 @@ class APNXBuilder(object):
         return pages
 
     def get_pages_fast(self, mobi_file_path):
-        '''
-        2300 characters of uncompressed text per page. This is
-        not meant to map 1 to 1 to a print book but to be a
+        """
+        2300 characters of uncompressed text per page.
+
+        This is not meant to map 1 to 1 to a print book but to be a
         close enough measure.
 
         A test book was chosen and the characters were counted
@@ -165,7 +169,7 @@ class APNXBuilder(object):
         accessible in MOBI files (part of the header). Also,
         It's faster to work off of the length then to
         decompress and parse the actual text.
-        '''
+        """
         text_length = 0
         pages = []
         count = 0

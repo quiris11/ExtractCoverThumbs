@@ -2,8 +2,9 @@
 #
 # Based on initial version Copyright © 2009 Charles M. Hannum root@ihack.net
 # Extensions / Improvements Copyright © 2009-2012: P. Durrant, K.Hendricks,
-# S. Siebert, fandrieu, DiapDealer, nickredding, and bug fixes from many others.
-# Stripped down for KindleButler Copyright (C) 2014 Pawel Jastrzebski <pawelj@vulturis.eu>
+# S. Siebert, fandrieu, DiapDealer, nickredding and bug fixes from many others.
+# Stripped down for KindleButler Copyright (C) 2014 Pawel Jastrzebski
+# <pawelj@vulturis.eu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,14 +27,14 @@ class Sectionizer:
         self.data = open(filename, 'rb').read()
         self.palmheader = self.data[:78]
         self.palmname = self.data[:32]
-        self.ident = self.palmheader[0x3C:0x3C+8]
+        self.ident = self.palmheader[0x3C:0x3C + 8]
         self.num_sections, = struct.unpack_from('>H', self.palmheader, 76)
         self.filelength = len(self.data)
-        sectionsdata = struct.unpack_from('>%dL' % (self.num_sections*2), self.data, 78) + (self.filelength, 0)
+        sectionsdata = struct.unpack_from('>%dL' % (self.num_sections * 2), self.data, 78) + (self.filelength, 0)  # noqa
         self.sectionoffsets = sectionsdata[::2]
         self.sectionattributes = sectionsdata[1::2]
         # noinspection PyUnusedLocal
-        self.sectiondescriptions = ["" for x in range(self.num_sections+1)]
+        self.sectiondescriptions = ["" for x in range(self.num_sections + 1)]
         self.sectiondescriptions[-1] = "File Length Only"
         return
 
@@ -41,10 +42,12 @@ class Sectionizer:
         if section < len(self.sectiondescriptions):
             self.sectiondescriptions[section] = description
         else:
-            print("Section out of range: %d, description %s" % (section, description))
+            print("Section out of range: %d, description %s" % (
+                section, description
+            ))
 
     def load_section(self, section):
-        before, after = self.sectionoffsets[section:section+2]
+        before, after = self.sectionoffsets[section:section + 2]
         return self.data[before:after]
 
 
@@ -148,7 +151,7 @@ class MobiHeader:
 
         # set defaults in case this is a PalmDOC
         self.title = self.sect.palmname
-        self.length = len(self.header)-16
+        self.length = len(self.header) - 16
         self.type = 3
         self.codepage = 1252
         self.codec = b'windows-1252'
@@ -159,8 +162,8 @@ class MobiHeader:
         self.exth_offset = self.length + 16
         self.exth_length = 0
         self.crypto_type = 0
-        self.firstnontext = self.start+self.records + 1
-        self.firstresource = self.start+self.records + 1
+        self.firstnontext = self.start + self.records + 1
+        self.firstresource = self.start + self.records + 1
         self.ncxidx = 0xffffffff
         self.metaorthindex = 0xffffffff
         self.metainflindex = 0xffffffff
@@ -168,13 +171,12 @@ class MobiHeader:
         self.dividx = 0xffffffff
         self.othidx = 0xffffffff
         self.fdst = 0xffffffff
-        self.mlstart = self.sect.load_section(self.start+1)[:4]
+        self.mlstart = self.sect.load_section(self.start + 1)[:4]
 
         if self.palm:
             return
 
-        self.length, self.type, self.codepage, self.unique_id, self.version = struct.unpack('>LLLLL',
-                                                                                            self.header[20:40])
+        self.length, self.type, self.codepage, self.unique_id, self.version = struct.unpack('>LLLLL', self.header[20:40])  # noqa
         codec_map = {
             1252: b'windows-1252',
             65001: b'utf-8',
@@ -192,15 +194,16 @@ class MobiHeader:
         self.exth_offset = self.length + 16
         self.exth_length = 0
         if self.hasexth:
-            self.exth_length, = struct.unpack_from('>L', self.header, self.exth_offset+4)
-            self.exth_length = ((self.exth_length + 3) >> 2) << 2  # round to next 4 byte boundary
-            self.exth = self.header[self.exth_offset:self.exth_offset+self.exth_length]
+            self.exth_length, = struct.unpack_from('>L', self.header, self.exth_offset + 4)  # noqa
+            # round to next 4 byte boundary
+            self.exth_length = ((self.exth_length + 3) >> 2) << 2
+            self.exth = self.header[self.exth_offset:self.exth_offset + self.exth_length]  # noqa
 
         # self.mlstart = self.sect.load_section(self.start+1)
         # self.mlstart = self.mlstart[0:4]
         self.crypto_type, = struct.unpack_from('>H', self.header, 0xC)
 
-        # Start sector for additional files such as images, fonts, resources, etc
+        # Start sector for additional files such as images, fonts, resources...
         self.firstresource, = struct.unpack_from('>L', self.header, 0x6C)
         self.firstnontext, = struct.unpack_from('>L', self.header, 0x50)
         if self.firstresource != 0xffffffff:
@@ -253,7 +256,8 @@ class MobiHeader:
 
             # need to use the FDST record to find out how to properly unpack
             # the rawML into pieces
-            # it is simply a table of start and end locations for each flow piece
+            # it is simply a table of start and end locations
+            # for each flow piece
             self.fdst, = struct.unpack_from('>L', self.header, 0xc0)
             self.fdstcnt, = struct.unpack_from('>L', self.header, 0xc4)
             # if cnt is 1 or less, fdst section mumber can be garbage
@@ -261,7 +265,8 @@ class MobiHeader:
                 self.fdst = 0xffffffff
             if self.fdst != 0xffffffff:
                 self.fdst += self.start
-                # setting of fdst section description properly handled in mobi_kf8proc
+                # setting of fdst section description properly handled
+                # in mobi_kf8proc
 
     def getmetadata(self):
         def addvalue(tmpname, tmpvalue):
@@ -275,7 +280,7 @@ class MobiHeader:
             extheader = extheader[12:]
             pos = 0
             for _ in range(num_items):
-                tmpid, size = struct.unpack('>LL', extheader[pos:pos+8])
+                tmpid, size = struct.unpack('>LL', extheader[pos:pos + 8])
                 content = extheader[pos + 8: pos + size]
                 if tmpid in MobiHeader.id_map_strings.keys():
                     name = MobiHeader.id_map_strings[tmpid]
