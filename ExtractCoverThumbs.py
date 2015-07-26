@@ -152,8 +152,8 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
                                         mobi_path, apnx_path, int(i[3])
                                     )
                                     continue
-                else:
-                    apnx_builder.write_apnx(mobi_path, apnx_path)
+                    else:
+                        apnx_builder.write_apnx(mobi_path, apnx_path)
 
 
 def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
