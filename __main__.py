@@ -111,4 +111,3 @@ if __name__ == '__main__':
         ans_ok = user_yes_no_query('Eject Kindle?')
         if ans_ok:
             os.system('diskutil eject ' + kindlepth)
-    #         os.system('diskutil eject ' + kindlepth)
