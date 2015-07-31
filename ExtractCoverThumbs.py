@@ -132,6 +132,7 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
                     print('* Generating APNX file for "%s"'
                           % f.decode(sys.getfilesystemencoding()))
                     if os.path.isfile(os.path.join('mobi-book-pages.txt')):
+                        print('! Using mobi-book-pages.txt file...')
                         with open(os.path.join('mobi-book-pages.txt')) as f:
                             csvread = csv.reader(
                                 f, delimiter=';', quotechar='"',
@@ -153,6 +154,7 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
                                     )
                                     continue
                     else:
+                        print('! Using fast algorithm...')
                         apnx_builder.write_apnx(mobi_path, apnx_path)
 
 
