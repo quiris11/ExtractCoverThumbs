@@ -46,6 +46,9 @@ parser.add_argument("--overwrite-apnx", help="overwrite APNX files",
                     action="store_true")
 parser.add_argument("--skip-apnx", help="skip generating APNX files",
                     action="store_true")
+parser.add_argument("-f", "--fix-thumb",
+                    help="fix thumbnails for PERSONAL badge",
+                    action="store_true")
 parser.add_argument("-z", "--azw", help="also extract covers from AZW files",
                     action="store_true")
 parser.add_argument('-d', '--days', nargs='?', metavar='DAYS', const='7',
@@ -106,7 +109,8 @@ if __name__ == '__main__':
         extract_cover_thumbs(args.silent, args.overwrite_pdoc_thumbs,
                              args.overwrite_amzn_thumbs,
                              args.overwrite_apnx, args.skip_apnx,
-                             kindlepth, docs, args.azw, args.days)
+                             kindlepth, docs, args.azw, args.days,
+                             args.fix_thumb)
     if sys.platform == 'darwin':
         ans_ok = user_yes_no_query('Eject Kindle?')
         if ans_ok:

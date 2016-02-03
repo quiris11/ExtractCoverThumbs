@@ -30,7 +30,8 @@ except ImportError:
 
 # get_cover_image based on Pawel Jastrzebski <pawelj@vulturis.eu> work:
 # https://github.com/AcidWeb/KindleButler/blob/master/KindleButler/File.py
-def get_cover_image(section, mh, metadata, doctype, file, fide, is_verbose):
+def get_cover_image(section, mh, metadata, doctype, file, fide, is_verbose,
+                    fix_thumb):
     try:
         cover_offset = metadata['CoverOffset'][0]
     except KeyError:
@@ -64,7 +65,7 @@ def get_cover_image(section, mh, metadata, doctype, file, fide, is_verbose):
             cover = Image.open(BytesIO(data))
             cover.thumbnail((283, 415), Image.ANTIALIAS)
             cover = cover.convert('L')
-            if doctype == 'PDOC':
+            if doctype == 'PDOC' and fix_thumb:
                 pdoc_cover = Image.new(
                     "L",
                     (cover.size[0], cover.size[1] + 55),
@@ -160,7 +161,7 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
 
 def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                          is_overwrite_amzn_thumbs, is_overwrite_apnx,
-                         skip_apnx, kindlepath, docs, is_azw, days):
+                         skip_apnx, kindlepath, docs, is_azw, days, fix_thumb):
     is_verbose = not is_silent
     try:
         dir_list = os.listdir(docs)
@@ -237,21 +238,22 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                 if is_verbose:
                     print('EXTRACTING COVER:', end=' ')
                 cover = get_cover_image(section, mh, metadata, doctype, f,
-                                        fide, is_verbose)
+                                        fide, is_verbose, fix_thumb)
                 if not cover:
                     continue
                 cover.save(thumbpath)
             elif is_verbose:
                 print('skipped (cover present or overwriting not forced).')
-    thumb_dir = os.path.join(kindlepath, 'system', 'thumbnails')
-    thumb_list = os.listdir(thumb_dir)
-    for c in thumb_list:
-        if c.startswith('thumbnail') and c.endswith('.jpg'):
-            if c.endswith('portrait.jpg'):
-                continue
-            cover = fix_generated_thumbs(os.path.join(thumb_dir, c),
-                                         is_verbose)
-            if cover is not None:
-                cover.save(os.path.join(thumb_dir, c), dpi=[72, 72])
+    if fix_thumb:
+        thumb_dir = os.path.join(kindlepath, 'system', 'thumbnails')
+        thumb_list = os.listdir(thumb_dir)
+        for c in thumb_list:
+            if c.startswith('thumbnail') and c.endswith('.jpg'):
+                if c.endswith('portrait.jpg'):
+                    continue
+                cover = fix_generated_thumbs(os.path.join(thumb_dir, c),
+                                             is_verbose)
+                if cover is not None:
+                    cover.save(os.path.join(thumb_dir, c), dpi=[72, 72])
     print("FINISH of extracting cover thumbnails...")
     return 0
