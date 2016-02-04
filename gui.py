@@ -44,6 +44,7 @@ class App:
         self.is_azw = BooleanVar()
         self.is_log = BooleanVar()
         self.nac = IntVar()
+        self.is_fix_thumb = BooleanVar()
         self.is_overwrite_pdoc_thumbs = BooleanVar()
         self.is_overwrite_amzn_thumbs = BooleanVar()
         self.is_overwrite_apnx = BooleanVar()
@@ -99,6 +100,14 @@ class App:
         )
         self.apnx_checkbox.deselect()
         self.apnx_checkbox.pack(side=TOP, anchor=NW)
+
+        self.fix_thumb_checkbox = Checkbutton(
+            self.frame2, text="Fix book covers for PERSONAL badge? "
+                              "(recommended for firmwares < 5.7.2)",
+            variable=self.is_fix_thumb
+        )
+        self.fix_thumb_checkbox.deselect()
+        self.fix_thumb_checkbox.pack(side=TOP, anchor=NW)
 
         self.labelframe = LabelFrame(
             self.frame2,
@@ -191,7 +200,8 @@ class App:
                 self.is_overwrite_amzn_thumbs.get(),
                 self.is_overwrite_apnx.get(),
                 self.skip_apnx.get(), self.kindlepath.get(),
-                self.docs, self.is_azw, None
+                self.docs, self.is_azw, None,
+                self.is_fix_thumb.get()
             )
         else:
             ec = extract_cover_thumbs(
@@ -199,7 +209,8 @@ class App:
                 self.is_overwrite_amzn_thumbs.get(),
                 self.is_overwrite_apnx.get(),
                 self.skip_apnx.get(), self.kindlepath.get(),
-                self.docs, self.is_azw, self.days.get()
+                self.docs, self.is_azw, self.days.get(),
+                self.is_fix_thumb.get()
             )
         if ec == 0:
             self.status.set('Process finished.')
