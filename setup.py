@@ -22,8 +22,8 @@ setup(
 )
 
 # build on Mac:
-# pyinstaller -Fn ExtractCoverThumbs_con ~/github/ExtractCoverThumbs/__main__.py
-# pyinstaller -Fn ExtractCoverThumbs_app  --windowed ~/github/ExtractCoverThumbs/gui.py
+# pyinstaller -Fn ExtractCoverThumbs_con ~/github/ExtractCoverThumbs/__main__.py  # noqa
+# pyinstaller -Fn ExtractCoverThumbs_app  --windowed ~/github/ExtractCoverThumbs/gui.py  # noqa
 
 # build on Windows:
 # 1) turn off antivirus
