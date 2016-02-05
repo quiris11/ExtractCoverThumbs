@@ -10,6 +10,13 @@
 # to your Kindle Paperwhite.
 #
 
+__license__ = 'GNU Affero GPL v3'
+__copyright__ = '2014, Robert Błaut listy@blaut.biz'
+__appname__ = u'ExtractCoverThumbs'
+numeric_version = (0, 9)
+__version__ = u'.'.join(map(unicode, numeric_version))
+__author__ = u'Robert Błaut <listy@blaut.biz>'
+
 from ExtractCoverThumbs import extract_cover_thumbs
 import Tkinter as tk
 from ScrolledText import ScrolledText
@@ -17,9 +24,6 @@ import tkFileDialog
 import tkMessageBox
 import sys
 import os
-
-numeric_version = (0, 8)
-__version__ = u'.'.join(map(unicode, numeric_version))
 
 
 class App:
