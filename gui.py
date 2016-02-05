@@ -17,11 +17,11 @@ numeric_version = (0, 9)
 __version__ = u'.'.join(map(unicode, numeric_version))
 __author__ = u'Robert Błaut <listy@blaut.biz>'
 
+import threading
 from ExtractCoverThumbs import extract_cover_thumbs
 import Tkinter as tk
 from ScrolledText import ScrolledText
 import tkFileDialog
-import tkMessageBox
 import sys
 import os
 
@@ -37,6 +37,7 @@ class App:
         class StdoutRedirector(IORedirector):
             def write(self, str):
                 self.stext.insert(tk.END, str)
+                self.stext.see(tk.END)
 
         self.skip_apnx = tk.BooleanVar()
         self.is_azw = tk.BooleanVar()
@@ -154,7 +155,7 @@ class App:
         self.frame3.pack(side=tk.TOP, anchor=tk.W)
 
         self.run_button = tk.Button(self.frame3, text="Start",
-                                    command=self.run,
+                                    command=self.runthread,
                                     width=15)
         self.run_button.pack(side=tk.LEFT)
 
@@ -181,20 +182,17 @@ class App:
         else:
             self.days_entry.configure(state='normal')
 
+    def runthread(self):
+        thread1 = threading.Thread(target=self.run)
+        thread1.start()
+
     def run(self):
         self.docs = os.path.join(self.kindlepath.get(), 'documents')
         self.stext.delete(1.0, tk.END)
-        self.status.set('Start processing your books...')
-        tkMessageBox.showwarning(
-            'Starting...',
-            'Process is starting. Click OK button and wait for ' +
-            'finish confirmation...',
-            icon='question',
-            parent=root
-        )
+        self.status.set('Processing your books... Please WAIT PATIENTLY!')
         self.frame.update_idletasks()
         if self.days.get() == '':
-            ec = extract_cover_thumbs(
+            extract_cover_thumbs(
                 self.is_log.get(), self.is_overwrite_pdoc_thumbs.get(),
                 self.is_overwrite_amzn_thumbs.get(),
                 self.is_overwrite_apnx.get(),
@@ -203,7 +201,7 @@ class App:
                 self.is_fix_thumb.get()
             )
         else:
-            ec = extract_cover_thumbs(
+            extract_cover_thumbs(
                 self.is_log.get(), self.is_overwrite_pdoc_thumbs.get(),
                 self.is_overwrite_amzn_thumbs.get(),
                 self.is_overwrite_apnx.get(),
@@ -212,23 +210,8 @@ class App:
                 self.is_fix_thumb.get()
 
             )
-        if ec == 0:
-            self.status.set('Process finished.')
-            tkMessageBox.showwarning(
-                'Finished...',
-                'Process finished. Check Message Window for details...',
-                icon='info',
-                parent=root
-            )
-        elif ec == 1:
-            self.status.set('Process finished with PROBLEMS!')
-            tkMessageBox.showwarning(
-                'Finished...',
-                'Process finished with PROBLEMS! ' +
-                'Check Message Window for details...',
-                icon='warning',
-                parent=root
-            )
+        self.status.set('Process FINISHED! '
+                        'You can SAFELY unmount Kindle device…')
 
     def askdirectory(self):
         if sys.platform == 'win32':
