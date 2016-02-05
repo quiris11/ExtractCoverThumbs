@@ -237,8 +237,11 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                     ))):
                 if is_verbose:
                     print('EXTRACTING COVER:', end=' ')
-                cover = get_cover_image(section, mh, metadata, doctype, f,
-                                        fide, is_verbose, fix_thumb)
+                try:
+                    cover = get_cover_image(section, mh, metadata, doctype, f,
+                                            fide, is_verbose, fix_thumb)
+                except IOError:
+                    continue
                 if not cover:
                     continue
                 cover.save(thumbpath)
