@@ -38,6 +38,7 @@ class App:
         self.is_azw = tk.BooleanVar()
         self.is_log = tk.BooleanVar()
         self.nac = tk.IntVar()
+        self.is_fix_thumb = tk.BooleanVar()
         self.is_overwrite_pdoc_thumbs = tk.BooleanVar()
         self.is_overwrite_amzn_thumbs = tk.BooleanVar()
         self.is_overwrite_apnx = tk.BooleanVar()
@@ -93,6 +94,14 @@ class App:
         )
         self.apnx_checkbox.deselect()
         self.apnx_checkbox.pack(side=tk.TOP, anchor=tk.NW)
+
+        self.fix_thumb_checkbox = tk.Checkbutton(
+            self.frame2, text="Fix book covers for PERSONAL badge? "
+                              "(recommended for firmwares < 5.7.2)",
+            variable=self.is_fix_thumb
+        )
+        self.fix_thumb_checkbox.deselect()
+        self.fix_thumb_checkbox.pack(side=tk.TOP, anchor=tk.NW)
 
         self.labelframe = tk.LabelFrame(
             self.frame2,
@@ -186,7 +195,8 @@ class App:
                 self.is_overwrite_amzn_thumbs.get(),
                 self.is_overwrite_apnx.get(),
                 self.skip_apnx.get(), self.kindlepath.get(),
-                self.docs, self.is_azw, None
+                self.docs, self.is_azw, None,
+                self.is_fix_thumb.get()
             )
         else:
             ec = extract_cover_thumbs(
@@ -194,7 +204,9 @@ class App:
                 self.is_overwrite_amzn_thumbs.get(),
                 self.is_overwrite_apnx.get(),
                 self.skip_apnx.get(), self.kindlepath.get(),
-                self.docs, self.is_azw, self.days.get()
+                self.docs, self.is_azw, self.days.get(),
+                self.is_fix_thumb.get()
+
             )
         if ec == 0:
             self.status.set('Process finished.')
