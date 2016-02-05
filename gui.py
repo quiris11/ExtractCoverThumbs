@@ -236,5 +236,5 @@ class App:
 root = tk.Tk()
 app = App(root)
 root.title('ExtractCoverThumbs ' + __version__)
-root.resizable(width=tk.FALSE, height=tk.FALSE)
+root.resizable(width=tk.FALSE, height=tk.TRUE)
 root.mainloop()
