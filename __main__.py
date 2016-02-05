@@ -76,7 +76,7 @@ if __name__ == '__main__':
     asinlist = []
     mf = os.path.join('mobi-book-pages.txt')
     if args.dump_pages:
-        print('* Dumping MOBI book pages CSV file...')
+        print('* Dumping MOBI book pages to a CSV file...')
         if os.path.isfile(mf):
             with open(mf) as f:
                 csvread = csv.reader(f, delimiter=';', quotechar='"',
