@@ -196,8 +196,8 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                             days)
         print("FINISH of generating book page numbers (APNX files)...")
     if not os.path.isdir(os.path.join(kindlepath, 'system', 'thumbnails')):
-        print('* UNABLE to continue... Thumbnails directory does not exist. '
-              'Probably not a Kindle Paperwhite/Touch device.')
+        print('* ERROR! No Kindle device found in the specified path: "' +
+              os.path.join(kindlepath) + '"')
         return 1
     print("START of extracting cover thumbnails...")
     if is_azw:
