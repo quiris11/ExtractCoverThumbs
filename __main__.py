@@ -111,7 +111,3 @@ if __name__ == '__main__':
                              args.overwrite_apnx, args.skip_apnx,
                              kindlepth, docs, args.azw, args.days,
                              args.fix_thumb)
-    if sys.platform == 'darwin':
-        ans_ok = user_yes_no_query('Eject Kindle?')
-        if ans_ok:
-            os.system('diskutil eject ' + kindlepth)
