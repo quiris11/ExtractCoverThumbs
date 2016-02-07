@@ -85,24 +85,34 @@ def get_cover_image(section, mh, metadata, doctype, file, fide, is_verbose,
     return False
 
 
-def fix_generated_thumbs(file, is_verbose):
+def fix_generated_thumbs(file, is_verbose, fix_thumb):
     try:
         cover = Image.open(file)
     except IOError:
-        return None
+        return False
     try:
         dpi = cover.info["dpi"]
     except KeyError:
+        dpi = (96, 96)
+    if dpi == (96, 96) and fix_thumb:
         if is_verbose:
             print('* Fixing generated thumbnail "%s"...' % (file))
         pdoc_cover = Image.new("L", (cover.size[0], cover.size[1] + 45),
                                "white")
         pdoc_cover.paste(cover, (0, 0))
-        return pdoc_cover
-    if is_verbose:
-        print('* Generated thumbnail "%s" is fixed. DPI: %s. Skipping...'
-              % (os.path.basename(file), dpi))
-    return cover
+        pdoc_cover.save(file, dpi=[72, 72])
+    elif dpi == (72, 72) and not fix_thumb:
+        if is_verbose:
+            print('* Reverse fix for generated thumbnail "%s"...' % (file))
+        pdoc_cover = Image.new("L", (cover.size[0], cover.size[1] - 45),
+                               "white")
+        pdoc_cover.paste(cover, (0, 0))
+        pdoc_cover.save(file, dpi=[96, 96])
+    else:
+        if is_verbose:
+            print('* Generated thumbnail "%s" is OK. DPI: %s. Skipping...'
+                  % (os.path.basename(file), dpi))
+    return False
 
 
 def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
@@ -251,16 +261,14 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                 cover.save(thumbpath)
             elif is_verbose:
                 print('skipped (cover present or overwriting not forced).')
-    if fix_thumb:
+    if is_overwrite_pdoc_thumbs:
         thumb_dir = os.path.join(kindlepath, 'system', 'thumbnails')
         thumb_list = os.listdir(thumb_dir)
         for c in thumb_list:
             if c.startswith('thumbnail') and c.endswith('.jpg'):
                 if c.endswith('portrait.jpg'):
                     continue
-                cover = fix_generated_thumbs(os.path.join(thumb_dir, c),
-                                             is_verbose)
-                if cover is not None:
-                    cover.save(os.path.join(thumb_dir, c), dpi=[72, 72])
+                fix_generated_thumbs(os.path.join(thumb_dir, c),
+                                     is_verbose, fix_thumb)
     print("FINISH of extracting cover thumbnails...")
     return 0
