@@ -244,6 +244,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                     cover = get_cover_image(section, mh, metadata, doctype, f,
                                             fide, is_verbose, fix_thumb)
                 except IOError:
+                    print('FAILED! Image format unrecognized...')
                     continue
                 if not cover:
                     continue
