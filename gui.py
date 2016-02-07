@@ -25,17 +25,18 @@ from ScrolledText import ScrolledText
 import tkFileDialog
 import sys
 import os
+sentinel = object()
 
 
 class ThreadedTask(threading.Thread):
     """Create threaded task.
     """
-    def __init__(self, queue, kindlepath, days, is_log,
+    def __init__(self, outqueue, kindlepath, days, is_log,
                  is_overwrite_pdoc_thumbs, is_overwrite_amzn_thumbs,
                  is_overwrite_apnx, skip_apnx, is_azw, is_fix_thumb,
                  status, run_button):
         threading.Thread.__init__(self)
-        self.queue = queue
+        self.outqueue = outqueue
         self.kindlepath = kindlepath
         self.days = days
         self.is_log = is_log
@@ -67,10 +68,9 @@ class ThreadedTask(threading.Thread):
                 self.skip_apnx.get(), self.kindlepath.get(),
                 self.docs, self.is_azw, self.days.get(),
                 self.is_fix_thumb.get()
-
             )
-        self.status.set(' Process finished...')
-        self.run_button['state'] = tk.NORMAL
+        self.outqueue.put(sentinel)
+
 
 class StdoutRedirector(object):
     """Redirect output.
@@ -237,11 +237,18 @@ class App:
             a = tkFileDialog.askdirectory(initialdir="/")
         self.kindlepath.set(str(a.encode(sys.getfilesystemencoding())))
 
-    def process_queue(self):
-        """
-        """
-        self.master.after(100, self.process_queue)
-        return
+    def update(self, outqueue):
+        try:
+            msg = outqueue.get_nowait()
+            if msg is not sentinel:
+                root.after(250, self.update, outqueue)
+            else:
+                # By not calling root.after here, we allow update to
+                # truly end
+                self.status.set(' Process finished...')
+                self.run_button['state'] = tk.NORMAL
+        except Queue.Empty:
+            root.after(250, self.update, outqueue)
 
     def createBtnCallback(self):
         """Create button event.
@@ -249,14 +256,14 @@ class App:
         self.run_button['state'] = tk.DISABLED
         self.stext.delete(1.0, tk.END)
         self.status.set(' Process started... Please wait...')
-        self.queue = Queue.Queue()
-        ThreadedTask(self.queue, self.kindlepath, self.days, self.is_log,
+        outqueue = Queue.Queue()
+        ThreadedTask(outqueue, self.kindlepath, self.days, self.is_log,
                      self.is_overwrite_pdoc_thumbs,
                      self.is_overwrite_amzn_thumbs,
                      self.is_overwrite_apnx, self.skip_apnx,
                      self.is_azw, self.is_fix_thumb,
                      self.status, self.run_button).start()
-        self.master.after(100, self.process_queue)
+        root.after(250, self.update, outqueue)
 
 root = tk.Tk()
 app = App(root)
