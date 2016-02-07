@@ -18,6 +18,7 @@ __version__ = u'.'.join(map(unicode, numeric_version))
 __author__ = u'Robert Błaut <listy@blaut.biz>'
 
 import threading
+import Queue
 from ExtractCoverThumbs import extract_cover_thumbs
 import Tkinter as tk
 from ScrolledText import ScrolledText
@@ -26,19 +27,66 @@ import sys
 import os
 
 
+class ThreadedTask(threading.Thread):
+    """Create threaded task.
+    """
+    def __init__(self, queue, kindlepath, days, is_log,
+                 is_overwrite_pdoc_thumbs, is_overwrite_amzn_thumbs,
+                 is_overwrite_apnx, skip_apnx, is_azw, is_fix_thumb,
+                 status, run_button):
+        threading.Thread.__init__(self)
+        self.queue = queue
+        self.kindlepath = kindlepath
+        self.days = days
+        self.is_log = is_log
+        self.is_overwrite_pdoc_thumbs = is_overwrite_pdoc_thumbs
+        self.is_overwrite_amzn_thumbs = is_overwrite_amzn_thumbs
+        self.is_overwrite_apnx = is_overwrite_apnx
+        self.skip_apnx = skip_apnx
+        self.is_azw = is_azw
+        self.is_fix_thumb = is_fix_thumb
+        self.status = status
+        self.run_button = run_button
+
+    def run(self):
+        self.docs = os.path.join(self.kindlepath.get(), 'documents')
+        if self.days.get() == '':
+            extract_cover_thumbs(
+                self.is_log.get(), self.is_overwrite_pdoc_thumbs.get(),
+                self.is_overwrite_amzn_thumbs.get(),
+                self.is_overwrite_apnx.get(),
+                self.skip_apnx.get(), self.kindlepath.get(),
+                self.docs, self.is_azw, None,
+                self.is_fix_thumb.get()
+            )
+        else:
+            extract_cover_thumbs(
+                self.is_log.get(), self.is_overwrite_pdoc_thumbs.get(),
+                self.is_overwrite_amzn_thumbs.get(),
+                self.is_overwrite_apnx.get(),
+                self.skip_apnx.get(), self.kindlepath.get(),
+                self.docs, self.is_azw, self.days.get(),
+                self.is_fix_thumb.get()
+
+            )
+        self.status.set(' Process finished...')
+        self.run_button['state'] = tk.NORMAL
+
+class StdoutRedirector(object):
+    """Redirect output.
+    """
+    def __init__(self, stext):
+        self.stext = stext
+
+    def write(self, str):
+        self.stext.insert(tk.END, str)
+        self.stext.see(tk.END)
+
+
 class App:
 
     def __init__(self, master):
-
-        class IORedirector(object):
-            def __init__(self, stext):
-                self.stext = stext
-
-        class StdoutRedirector(IORedirector):
-            def write(self, str):
-                self.stext.insert(tk.END, str)
-                self.stext.see(tk.END)
-
+        self.master = master
         self.skip_apnx = tk.BooleanVar()
         self.is_azw = tk.BooleanVar()
         self.is_log = tk.BooleanVar()
@@ -155,7 +203,7 @@ class App:
         self.frame3.pack(side=tk.TOP, anchor=tk.W)
 
         self.run_button = tk.Button(self.frame3, text="Start",
-                                    command=self.runthread,
+                                    command=self.createBtnCallback,
                                     width=15)
         self.run_button.pack(side=tk.LEFT)
 
@@ -182,43 +230,33 @@ class App:
         else:
             self.days_entry.configure(state='normal')
 
-    def runthread(self):
-        thread1 = threading.Thread(target=self.run)
-        thread1.start()
-
-    def run(self):
-        self.docs = os.path.join(self.kindlepath.get(), 'documents')
-        self.stext.delete(1.0, tk.END)
-        self.status.set('Processing your books... Please WAIT PATIENTLY!')
-        self.frame.update_idletasks()
-        if self.days.get() == '':
-            extract_cover_thumbs(
-                self.is_log.get(), self.is_overwrite_pdoc_thumbs.get(),
-                self.is_overwrite_amzn_thumbs.get(),
-                self.is_overwrite_apnx.get(),
-                self.skip_apnx.get(), self.kindlepath.get(),
-                self.docs, self.is_azw, None,
-                self.is_fix_thumb.get()
-            )
-        else:
-            extract_cover_thumbs(
-                self.is_log.get(), self.is_overwrite_pdoc_thumbs.get(),
-                self.is_overwrite_amzn_thumbs.get(),
-                self.is_overwrite_apnx.get(),
-                self.skip_apnx.get(), self.kindlepath.get(),
-                self.docs, self.is_azw, self.days.get(),
-                self.is_fix_thumb.get()
-
-            )
-        self.status.set('Process FINISHED! '
-                        'You can SAFELY unmount Kindle device…')
-
     def askdirectory(self):
         if sys.platform == 'win32':
             a = tkFileDialog.askdirectory(initialdir="c:/")
         else:
             a = tkFileDialog.askdirectory(initialdir="/")
         self.kindlepath.set(str(a.encode(sys.getfilesystemencoding())))
+
+    def process_queue(self):
+        """
+        """
+        self.master.after(100, self.process_queue)
+        return
+
+    def createBtnCallback(self):
+        """Create button event.
+        """
+        self.run_button['state'] = tk.DISABLED
+        self.stext.delete(1.0, tk.END)
+        self.status.set(' Process started... Please wait...')
+        self.queue = Queue.Queue()
+        ThreadedTask(self.queue, self.kindlepath, self.days, self.is_log,
+                     self.is_overwrite_pdoc_thumbs,
+                     self.is_overwrite_amzn_thumbs,
+                     self.is_overwrite_apnx, self.skip_apnx,
+                     self.is_azw, self.is_fix_thumb,
+                     self.status, self.run_button).start()
+        self.master.after(100, self.process_queue)
 
 root = tk.Tk()
 app = App(root)
