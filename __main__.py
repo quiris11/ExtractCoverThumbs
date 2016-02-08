@@ -58,6 +58,11 @@ parser.add_argument("--dump-pages",
                     help="dump list of new books with a rough number of "
                     "pages from last dump",
                     action="store_true")
+if sys.platform == 'darwin':
+    parser.add_argument("-e", "--eject",
+                        help="eject Kindle after completing process",
+                        action="store_true")
+
 args = parser.parse_args()
 
 kindlepth = args.kindle_directory
@@ -111,7 +116,5 @@ if __name__ == '__main__':
                              args.overwrite_apnx, args.skip_apnx,
                              kindlepth, docs, args.azw, args.days,
                              args.fix_thumb)
-    if sys.platform == 'darwin':
-        ans_ok = user_yes_no_query('Eject Kindle?')
-        if ans_ok:
+    if args.eject and sys.platform == 'darwin':
             os.system('diskutil eject ' + kindlepth)
