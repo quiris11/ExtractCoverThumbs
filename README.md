@@ -32,8 +32,11 @@ optional arguments:
                         from last dump
 ```
 
-Compilation tips for creating standalone applications with Pyinstaller tool:
+#### Additional requirements:
+* python -m pip install pillow
+* python -m pip install pyinstaller (for compilation only)
 
+#### Compilation tips for creating standalone applications with Pyinstaller tool:
 ```
 build on Mac (with Python 2.7.x from Homebrew):
 pyinstaller -Fn ExtractCoverThumbs_con ~/github/ExtractCoverThumbs/__main__.py
