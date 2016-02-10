@@ -29,8 +29,8 @@ sentinel = object()
 
 
 class ThreadedTask(threading.Thread):
-    """Create threaded task.
-    """
+    """Create threaded task."""
+
     def __init__(self, outqueue, kindlepath, days, is_log,
                  is_overwrite_pdoc_thumbs, is_overwrite_amzn_thumbs,
                  is_overwrite_apnx, skip_apnx, is_azw, is_fix_thumb,
@@ -73,8 +73,8 @@ class ThreadedTask(threading.Thread):
 
 
 class StdoutRedirector(object):
-    """Redirect output.
-    """
+    """Redirect output."""
+
     def __init__(self, stext):
         self.stext = stext
 
@@ -251,8 +251,7 @@ class App:
             root.after(250, self.update, outqueue)
 
     def createBtnCallback(self):
-        """Create button event.
-        """
+        """Create button event."""
         self.run_button['state'] = tk.DISABLED
         self.stext.delete(1.0, tk.END)
         self.status.set(' Process started... Please wait...')
