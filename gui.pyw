@@ -19,12 +19,13 @@ __author__ = u'Robert Błaut <listy@blaut.biz>'
 
 import threading
 import Queue
-from lib.extract_cover_thumbs import extract_cover_thumbs
-import Tkinter as tk
-from ScrolledText import ScrolledText
 import tkFileDialog
 import sys
 import os
+import Tkinter as tk
+from ScrolledText import ScrolledText
+from lib.extract_cover_thumbs import extract_cover_thumbs
+
 sentinel = object()
 
 

@@ -11,13 +11,12 @@ Generates and writes an APNX page mapping file.
 import struct
 import os
 import sys
-import kindle_unpack
 
-from header import PdbHeaderReader
+import kindle_unpack
+from lib.header import PdbHeaderReader
 
 
 class APNXBuilder(object):
-
     """Create an APNX file using a pseudo page mapping."""
 
     def write_apnx(self, mobi_file_path, apnx_path, page_count=0):

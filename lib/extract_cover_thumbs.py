@@ -14,13 +14,15 @@ from __future__ import print_function
 import sys
 import os
 import csv
-import kindle_unpack
-from datetime import datetime
-from lib.apnx import APNXBuilder
-from lib.pages import find_exth
 
 from imghdr import what
 from io import BytesIO
+from datetime import datetime
+
+import kindle_unpack
+from lib.apnx import APNXBuilder
+from lib.pages import find_exth
+
 
 try:
     from PIL import Image
