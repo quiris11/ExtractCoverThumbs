@@ -40,10 +40,10 @@ optional arguments:
 * build on Mac (with Python 2.7.x from Homebrew):
 ```
 pyinstaller -Fn ExtractCoverThumbs_con ~/github/ExtractCoverThumbs/__main__.py
-pyinstaller -Fn ExtractCoverThumbs_app  --windowed ~/github/ExtractCoverThumbs/gui.py
+pyinstaller -Fn ExtractCoverThumbs_app  --windowed ~/github/ExtractCoverThumbs/gui.pyw
 ```
 * build on Windows (with Python 2.7.x):
 ```
 C:\Python27\Scripts\pyinstaller.exe -Fn ExtractCoverThumbs_con .\ExtractCoverThumbs\__main__.py
-C:\Python27\Scripts\pyinstaller.exe -Fn ExtractCoverThumbs_win --windowed .\ExtractCoverThumbs\gui.py
+C:\Python27\Scripts\pyinstaller.exe -Fn ExtractCoverThumbs_win --windowed .\ExtractCoverThumbs\gui.pyw
 ```
