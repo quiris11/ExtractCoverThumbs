@@ -19,7 +19,7 @@ __author__ = u'Robert Błaut <listy@blaut.biz>'
 
 import threading
 import Queue
-from ExtractCoverThumbs import extract_cover_thumbs
+from lib.extract_cover_thumbs import extract_cover_thumbs
 import Tkinter as tk
 from ScrolledText import ScrolledText
 import tkFileDialog

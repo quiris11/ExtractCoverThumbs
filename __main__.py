@@ -23,8 +23,8 @@ import argparse
 import os
 import sys
 import csv
-from pages import get_pages
-from ExtractCoverThumbs import extract_cover_thumbs
+from lib.pages import get_pages
+from lib.extract_cover_thumbs import extract_cover_thumbs
 from distutils.util import strtobool
 
 parser = argparse.ArgumentParser()

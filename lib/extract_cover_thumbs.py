@@ -14,10 +14,10 @@ from __future__ import print_function
 import sys
 import os
 import csv
-import KindleUnpack
+import kindle_unpack
 from datetime import datetime
-from apnx import APNXBuilder
-from pages import find_exth
+from lib.apnx import APNXBuilder
+from lib.pages import find_exth
 
 from imghdr import what
 from io import BytesIO
@@ -224,8 +224,8 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                     print('* Not a valid MOBI file "%s".'
                           % fide)
                     continue
-            section = KindleUnpack.Sectionizer(mobi_path)
-            mhlst = [KindleUnpack.MobiHeader(section, 0)]
+            section = kindle_unpack.Sectionizer(mobi_path)
+            mhlst = [kindle_unpack.MobiHeader(section, 0)]
             mh = mhlst[0]
             metadata = mh.getmetadata()
             try:

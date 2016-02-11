@@ -11,7 +11,7 @@ Generates and writes an APNX page mapping file.
 import struct
 import os
 import sys
-import KindleUnpack
+import kindle_unpack
 
 from header import PdbHeaderReader
 
@@ -47,8 +47,8 @@ class APNXBuilder(object):
         # We'll need the PDB name, the MOBI version, and some metadata to make
         # FW 3.4 happy with KF8 files...
         with open(mobi_file_path, 'rb') as mf:
-            section = KindleUnpack.Sectionizer(mobi_file_path)
-            mhlst = [KindleUnpack.MobiHeader(section, 0)]
+            section = kindle_unpack.Sectionizer(mobi_file_path)
+            mhlst = [kindle_unpack.MobiHeader(section, 0)]
             mh = mhlst[0]
             metadata = mh.getmetadata()
             if mh.version == 8:
