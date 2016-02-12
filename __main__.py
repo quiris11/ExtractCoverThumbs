@@ -56,7 +56,7 @@ parser.add_argument('-d', '--days', nargs='?', metavar='DAYS', const='7',
                     'be processed (default: 7 days).')
 parser.add_argument("--dump-pages",
                     help="dump list of new books with a rough number of "
-                    "pages from last dump",
+                    "pages from last dump to a file 'book-pages.csv'",
                     action="store_true")
 if sys.platform == 'darwin':
     parser.add_argument("-e", "--eject",
@@ -79,7 +79,7 @@ def user_yes_no_query(question):
 
 if __name__ == '__main__':
     asinlist = []
-    mf = os.path.join('mobi-book-pages.txt')
+    mf = os.path.join('book-pages.csv')
     if args.dump_pages:
         print('* Dumping MOBI book pages to a CSV file...')
         if os.path.isfile(mf):
@@ -91,7 +91,7 @@ if __name__ == '__main__':
             with open(mf, 'wb') as o:
                 csvwrite = csv.writer(o, delimiter=';', quotechar='"',
                                       quoting=csv.QUOTE_ALL)
-                csvwrite.writerow(['asin', 'author', 'title', 'pages'])
+                csvwrite.writerow(['asin', 'isbn', 'author', 'title', 'pages'])
         for dirpath, dirs, files in os.walk(docs):
             for file in files:
                 file_extension = os.path.splitext(file)[1].lower()
@@ -104,8 +104,11 @@ if __name__ == '__main__':
                 if row is None:
                     continue
                 if row[0] in asinlist:
+                    print('  * Existing the book entry in the CSV file. '
+                          'Skipping... ')
                     continue
                 with open(mf, 'ab') as o:
+                    print('  ! Updating the CSV file...')
                     csvwrite = csv.writer(o, delimiter=';', quotechar='"',
                                           quoting=csv.QUOTE_ALL)
                     csvwrite.writerow(row)
