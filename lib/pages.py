@@ -94,8 +94,10 @@ def get_pages(dirpath, mfile):
     id, ver, title, locations = mobi_header_fields(mobi_content)
     author = find_exth(100, mobi_content)
     asin = find_exth(113, mobi_content)
+    isbn = find_exth(104, mobi_content)
     row = [
         asin,
+        isbn,
         author,
         title,
         locations / 15 + 1
