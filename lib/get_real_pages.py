@@ -9,9 +9,11 @@
 # from Amazon Personal Documents Service and side loads them
 # to your Kindle Paperwhite.
 #
+from __future__ import print_function
 
 
 def get_real_pages(csvfile):
+
     from lxml.html import fromstring
     import os
     import csv
@@ -44,7 +46,7 @@ def get_real_pages(csvfile):
         else:
             return None
 
-    def get_search_results(tree):
+    def get_search_results(tree, author, title):
         results = tree.xpath('*//div[contains(@class,"book-data")]')
         if len(results) == 1:
             book_url = results[0].xpath(
@@ -54,20 +56,23 @@ def get_real_pages(csvfile):
             return book_url
         else:
             print('* multiple results * ')
-            return None
-            # for result in results:
-            #     title = result.xpath(
-            #         './div[contains(@class,"book-general-data")]'
-            #         '//a[@class="bookTitle"]//text()'
-            #     )
-            #     book_url = result.xpath(
-            #         './div[contains(@class,"book-general-data")]'
-            #         '/a[@class="bookTitle"]/@href'
-            #     )
-            #     authors = result.xpath(
-            #         './div[contains(@class,"book-general-data")]'
-            #         '//a[contains(@href,"autor")]//text()'
-            #     )
+            # return None
+            for result in results:
+                title_f = result.xpath(
+                    './div[contains(@class,"book-general-data")]'
+                    '//a[@class="bookTitle"]//text()'
+                )
+                book_url = result.xpath(
+                    './div[contains(@class,"book-general-data")]'
+                    '/a[@class="bookTitle"]/@href'
+                )
+                authors_f = result.xpath(
+                    './div[contains(@class,"book-general-data")]'
+                    '//a[contains(@href,"autor")]//text()'
+                )
+                print(authors_f, title_f)
+                if title == title_f[0].encode('UTF-8'):
+                    print('SUCCESS')
 
     print(os.path.join(HOME, csvfile))
     if os.path.isfile(os.path.join(HOME, csvfile)):
@@ -77,8 +82,11 @@ def get_real_pages(csvfile):
                 quoting=csv.QUOTE_ALL
             )
             for row in csvread:
+                if row[0] == 'asin' or row[5] is True:
+                    continue
+                print('# ' + row[3])
                 root = search_book(row[3])
-                book_url = get_search_results(root)
+                book_url = get_search_results(root, row[2], row[3])
                 print(book_url)
                 if book_url:
                     pages = get_pages(book_url)
