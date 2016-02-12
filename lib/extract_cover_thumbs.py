@@ -147,9 +147,9 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
                 if is_verbose:
                     print('* Generating APNX file for "%s"'
                           % f.decode(sys.getfilesystemencoding()))
-                    if os.path.isfile(os.path.join('mobi-book-pages.txt')):
-                        print('! Using mobi-book-pages.txt file...')
-                        with open(os.path.join('mobi-book-pages.txt')) as f:
+                    if os.path.isfile(os.path.join('book-pages.csv')):
+                        # print('! Using book-pages.csv file...')
+                        with open(os.path.join('book-pages.csv')) as f:
                             csvread = csv.reader(
                                 f, delimiter=';', quotechar='"',
                                 quoting=csv.QUOTE_ALL
@@ -161,16 +161,22 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
                                 asin = ''
                             else:
                                 asin = find_exth(113, mobi_content)
+                            found = False
                             for i in csvread:
                                 if i[0] == asin:
                                     print('  * Using %s pages defined '
-                                          'in mobi-book-pages.txt' % (i[3]))
+                                          'in book-pages.csv' % (i[4]))
                                     apnx_builder.write_apnx(
-                                        mobi_path, apnx_path, int(i[3])
+                                        mobi_path, apnx_path, int(i[4])
                                     )
+                                    found = True
                                     continue
+                            if not found:
+                                print('  ! Book not found in book-pages.csv.'
+                                      ' Fast algorithm used...')
+                                apnx_builder.write_apnx(mobi_path, apnx_path)
+
                     else:
-                        print('! Using fast algorithm...')
                         apnx_builder.write_apnx(mobi_path, apnx_path)
 
 
