@@ -100,6 +100,7 @@ def get_pages(dirpath, mfile):
         isbn,
         author,
         title,
-        locations / 15 + 1
+        locations / 15 + 1,
+        False
     ]
     return row

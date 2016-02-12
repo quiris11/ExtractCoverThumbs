@@ -91,7 +91,9 @@ if __name__ == '__main__':
             with open(mf, 'wb') as o:
                 csvwrite = csv.writer(o, delimiter=';', quotechar='"',
                                       quoting=csv.QUOTE_ALL)
-                csvwrite.writerow(['asin', 'isbn', 'author', 'title', 'pages'])
+                csvwrite.writerow(
+                    ['asin', 'isbn', 'author', 'title', 'pages', 'is_real']
+                )
         for dirpath, dirs, files in os.walk(docs):
             for file in files:
                 file_extension = os.path.splitext(file)[1].lower()
