@@ -21,7 +21,6 @@ import threading
 import Queue
 import tkFileDialog
 import sys
-import os
 import Tkinter as tk
 from ScrolledText import ScrolledText
 from lib.extract_cover_thumbs import extract_cover_thumbs
@@ -51,14 +50,13 @@ class ThreadedTask(threading.Thread):
         self.run_button = run_button
 
     def run(self):
-        self.docs = os.path.join(self.kindlepath.get(), 'documents')
         if self.days.get() == '':
             extract_cover_thumbs(
                 self.is_log.get(), self.is_overwrite_pdoc_thumbs.get(),
                 self.is_overwrite_amzn_thumbs.get(),
                 self.is_overwrite_apnx.get(),
                 self.skip_apnx.get(), self.kindlepath.get(),
-                self.docs, self.is_azw, None,
+                self.is_azw.get(), None,
                 self.is_fix_thumb.get()
             )
         else:
@@ -67,7 +65,7 @@ class ThreadedTask(threading.Thread):
                 self.is_overwrite_amzn_thumbs.get(),
                 self.is_overwrite_apnx.get(),
                 self.skip_apnx.get(), self.kindlepath.get(),
-                self.docs, self.is_azw, self.days.get(),
+                self.is_azw.get(), self.days.get(),
                 self.is_fix_thumb.get()
             )
         self.outqueue.put(sentinel)
