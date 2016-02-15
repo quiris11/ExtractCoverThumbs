@@ -182,7 +182,8 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
 
 def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                          is_overwrite_amzn_thumbs, is_overwrite_apnx,
-                         skip_apnx, kindlepath, docs, is_azw, days, fix_thumb):
+                         skip_apnx, kindlepath, is_azw, days, fix_thumb):
+    docs = os.path.join(kindlepath, 'documents')
     is_verbose = not is_silent
     try:
         dir_list = os.listdir(docs)
