@@ -65,8 +65,8 @@ if sys.platform == 'darwin':
 
 args = parser.parse_args()
 
-kindlepth = args.kindle_directory
-docs = os.path.join(kindlepth, 'documents')
+kindlepath = args.kindle_directory
+docs = os.path.join(kindlepath, 'documents')
 
 
 def user_yes_no_query(question):
@@ -119,7 +119,7 @@ if __name__ == '__main__':
         extract_cover_thumbs(args.silent, args.overwrite_pdoc_thumbs,
                              args.overwrite_amzn_thumbs,
                              args.overwrite_apnx, args.skip_apnx,
-                             kindlepth, docs, args.azw, args.days,
+                             kindlepath, args.azw, args.days,
                              args.fix_thumb)
     if args.eject and sys.platform == 'darwin':
-            os.system('diskutil eject ' + kindlepth)
+            os.system('diskutil eject ' + kindlepath)
