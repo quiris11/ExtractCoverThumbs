@@ -102,9 +102,10 @@ def get_real_pages(csvfile):
                 book_url = get_search_results(root, row[2], row[3])
                 if book_url:
                     pages = get_pages(book_url)
-                    row[4] = pages
-                    row[5] = True
-                    print('Liczba stron: ', pages)
+                    if pages is not None:
+                        row[4] = pages
+                        row[5] = True
+                        print('Liczba stron: ', pages)
                 csvwrite.writerow(row)
         shutil.move(tempfile.name, os.path.join(HOME, csvfile))
 get_real_pages('book-pages.csv')
