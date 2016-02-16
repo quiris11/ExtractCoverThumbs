@@ -15,11 +15,14 @@ from __future__ import print_function
 def get_real_pages(csvfile):
 
     from lxml.html import fromstring
+    from tempfile import NamedTemporaryFile
+    import shutil
     import os
     import csv
     import urllib
     import urllib2
     HOME = os.path.expanduser("~")
+    tempfile = NamedTemporaryFile(delete=False)
 
     def get_html_page(url):
         req = urllib2.Request(url)
@@ -55,40 +58,53 @@ def get_real_pages(csvfile):
             )[0]
             return book_url
         else:
-            print('* multiple results * ')
-            # return None
             for result in results:
-                title_f = result.xpath(
-                    './div[contains(@class,"book-general-data")]'
-                    '//a[@class="bookTitle"]//text()'
-                )
+                try:
+                    title_f = result.xpath(
+                        './div[contains(@class,"book-general-data")]'
+                        '//a[@class="bookTitle"]//text()'
+                    )[0]
+                except IndexError:
+                    title_f = ''
+                try:
+                    author_f = result.xpath(
+                        './div[contains(@class,"book-general-data")]'
+                        '//a[contains(@href,"autor")]//text()'
+                    )[0]
+                except IndexError:
+                    author_f = ''
                 book_url = result.xpath(
                     './div[contains(@class,"book-general-data")]'
                     '/a[@class="bookTitle"]/@href'
-                )
-                authors_f = result.xpath(
-                    './div[contains(@class,"book-general-data")]'
-                    '//a[contains(@href,"autor")]//text()'
-                )
-                print(authors_f, title_f)
-                if title == title_f[0].encode('UTF-8'):
-                    print('SUCCESS')
+                )[0]
+                if title.lower() == title_f.lower().encode('UTF-8'):
+                    if author.lower() == author_f.lower().encode('UTF-8'):
+                        return book_url
+                        break
 
     print(os.path.join(HOME, csvfile))
     if os.path.isfile(os.path.join(HOME, csvfile)):
-        with open(os.path.join(HOME, csvfile)) as f:
+        with open(os.path.join(HOME, csvfile), 'rb') as f, tempfile:
             csvread = csv.reader(
                 f, delimiter=';', quotechar='"',
                 quoting=csv.QUOTE_ALL
             )
+            csvwrite = csv.writer(
+                tempfile, delimiter=';', quotechar='"',
+                quoting=csv.QUOTE_ALL
+            )
             for row in csvread:
-                if row[0] == 'asin' or row[5] is True:
+                if row[0] == 'asin' or row[5] == 'True':
+                    csvwrite.writerow(row)
                     continue
-                print('# ' + row[3])
+                print('# ' + row[2] + ' - ' + row[3])
                 root = search_book(row[3])
                 book_url = get_search_results(root, row[2], row[3])
-                print(book_url)
                 if book_url:
                     pages = get_pages(book_url)
-                    print(pages)
+                    row[4] = pages
+                    row[5] = True
+                    print('Liczba stron: ', pages)
+                csvwrite.writerow(row)
+        shutil.move(tempfile.name, os.path.join(HOME, csvfile))
 get_real_pages('book-pages.csv')
