@@ -90,7 +90,10 @@ def get_real_pages(csvfile):
                 if row[0] == 'asin' or row[5] == 'True':
                     continue
                 print('# ' + row[2] + ' - ' + row[3])
-                root = search_book(row[3])
+                try:
+                    root = search_book(row[3])
+                except urllib2.HTTPError:
+                    continue
                 book_url = get_search_results(root, row[2], row[3])
                 if book_url:
                     pages = get_pages(book_url)
