@@ -15,14 +15,11 @@ from __future__ import print_function
 def get_real_pages(csvfile):
 
     from lxml.html import fromstring
-    from tempfile import NamedTemporaryFile
-    import shutil
     import os
     import csv
     import urllib
     import urllib2
     HOME = os.path.expanduser("~")
-    tempfile = NamedTemporaryFile(delete=False)
 
     def get_html_page(url):
         req = urllib2.Request(url)
@@ -82,20 +79,15 @@ def get_real_pages(csvfile):
                         return book_url
                         break
 
-    print(os.path.join(HOME, csvfile))
     if os.path.isfile(os.path.join(HOME, csvfile)):
-        with open(os.path.join(HOME, csvfile), 'rb') as f, tempfile:
+        with open(os.path.join(HOME, csvfile), 'rb') as f:
             csvread = csv.reader(
                 f, delimiter=';', quotechar='"',
                 quoting=csv.QUOTE_ALL
             )
-            csvwrite = csv.writer(
-                tempfile, delimiter=';', quotechar='"',
-                quoting=csv.QUOTE_ALL
-            )
-            for row in csvread:
+            dumped_list = list(csvread)
+            for row in dumped_list:
                 if row[0] == 'asin' or row[5] == 'True':
-                    csvwrite.writerow(row)
                     continue
                 print('# ' + row[2] + ' - ' + row[3])
                 root = search_book(row[3])
@@ -106,6 +98,10 @@ def get_real_pages(csvfile):
                         row[4] = pages
                         row[5] = True
                         print('Liczba stron: ', pages)
-                csvwrite.writerow(row)
-        shutil.move(tempfile.name, os.path.join(HOME, csvfile))
+                with open(os.path.join(HOME, csvfile), 'wb') as f:
+                    csvwrite = csv.writer(
+                        f, delimiter=';', quotechar='"',
+                        quoting=csv.QUOTE_ALL
+                    )
+                    csvwrite.writerows(dumped_list)
 get_real_pages('book-pages.csv')
