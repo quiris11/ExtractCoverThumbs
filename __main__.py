@@ -95,6 +95,7 @@ if __name__ == '__main__':
                     ['asin', 'isbn', 'author', 'title', 'pages', 'is_real']
                 )
         for dirpath, dirs, files in os.walk(docs):
+            files.sort()
             for file in files:
                 file_extension = os.path.splitext(file)[1].lower()
                 if file_extension not in ['.mobi', '.azw', '.azw3']:
