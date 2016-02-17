@@ -89,10 +89,11 @@ def get_real_pages(csvfile):
             for row in dumped_list:
                 if row[0] == 'asin' or row[5] == 'True':
                     continue
-                print('# ' + row[2] + ' - ' + row[3])
+                print('* Searching for: ' + row[2] + ' - ' + row[3])
                 try:
                     root = search_book(row[3])
                 except urllib2.HTTPError:
+                    print('! HTTP error. Unable to find the book details...')
                     continue
                 book_url = get_search_results(root, row[2], row[3])
                 if book_url:
@@ -101,6 +102,9 @@ def get_real_pages(csvfile):
                         row[4] = pages
                         row[5] = True
                         print('Liczba stron: ', pages)
+                    else:
+                        print('! There are no pages found '
+                              'on the site: ' + book_url)
                 with open(os.path.join(HOME, csvfile), 'wb') as f:
                     csvwrite = csv.writer(
                         f, delimiter=';', quotechar='"',
