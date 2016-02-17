@@ -73,6 +73,9 @@ def mobi_header_fields(mobi_content):
     header = pp.readsection(0)
     id = struct.unpack_from('4s', header, 0x10)[0]
     version = struct.unpack_from('>L', header, 0x24)[0]
+    # dictionary input and output languages
+    dict_input = struct.unpack_from('>L', header, 0x60)[0]
+    dict_output = struct.unpack_from('>L', header, 0x64)[0]
     # number of locations
     text_length = struct.unpack('>I', header[4:8])[0]
     locations = text_length / 150 + 1
@@ -81,7 +84,7 @@ def mobi_header_fields(mobi_content):
     tend = toff + tlen
     title = header[toff:tend]
 
-    return id, version, title, locations
+    return id, version, title, locations, dict_input, dict_output
 
 
 def get_pages(dirpath, mfile):
@@ -91,7 +94,10 @@ def get_pages(dirpath, mfile):
     if mobi_content[60:68] != 'BOOKMOBI':
         print(file_dec + ': invalid file format. Skipping...')
         return None
-    id, ver, title, locations = mobi_header_fields(mobi_content)
+    id, ver, title, locations, di, do = mobi_header_fields(mobi_content)
+    if (di != 0 or do != 0):
+        print(file_dec + ': dictionary file. Skipping...')
+        return None
     author = find_exth(100, mobi_content)
     asin = find_exth(113, mobi_content)
     isbn = find_exth(104, mobi_content)
