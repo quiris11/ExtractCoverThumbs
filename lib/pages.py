@@ -100,6 +100,9 @@ def get_pages(dirpath, mfile):
         return None
     author = find_exth(100, mobi_content)
     asin = find_exth(113, mobi_content)
+    if '!DeviceUpgradeLetter!' in asin:
+        print(file_dec + ': Upgrade Letter. Skipping...')
+        return None
     isbn = find_exth(104, mobi_content)
     row = [
         asin,
