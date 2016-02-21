@@ -34,17 +34,22 @@ def get_real_pages(csvfile):
         url = url + '?' + data
         return get_html_page(url)
 
-    def get_pages(url):
+    def get_pages_book_type(url):
         tree = get_html_page(url)
         pages = tree.xpath(
             '//div[@class="profil-desc-inline"]'
             '//dt[contains(text(),"liczba stron")]'
             '/following-sibling::dd/text()'
         )
-        if pages:
-            return pages[0]
+        book_types = tree.xpath('//div[contains(@class, "cover-book-type")]')
+        if book_types:
+            book_type = book_types[0].text
         else:
-            return None
+            book_type = ''
+        if pages:
+            return pages[0], book_type
+        else:
+            return None, book_type
 
     def get_search_results(tree, author, title):
         results = tree.xpath('*//div[contains(@class,"book-data")]')
@@ -97,11 +102,15 @@ def get_real_pages(csvfile):
                     continue
                 book_url = get_search_results(root, row[2], row[3])
                 if book_url:
-                    pages = get_pages(book_url)
+                    pages, book_type = get_pages_book_type(book_url)
                     if pages is not None:
                         row[4] = pages
                         row[5] = True
                         print('Liczba stron: ', pages)
+                    elif book_type == 'E-book':
+                        print('! E-book format only! '
+                              'Using computed pages as real pages...')
+                        row[5] = True
                     else:
                         print('! There are no pages found '
                               'on the site: ' + book_url)
