@@ -14,6 +14,8 @@ from __future__ import print_function
 import sys
 import os
 import csv
+import shutil
+import tempfile
 
 from imghdr import what
 from io import BytesIO
@@ -28,6 +30,21 @@ try:
     from PIL import Image
 except ImportError:
     sys.exit('ERROR! Python Imaging Library (PIL) or Pillow not installed.')
+
+
+def clean_temp(sourcedir):
+    for p in os.listdir(os.path.join(sourcedir, os.pardir)):
+            if 'epubQTools-tmp-' in p:
+                if os.path.isdir(os.path.join(sourcedir, os.pardir, p)):
+                    try:
+                        shutil.rmtree(os.path.join(sourcedir, os.pardir, p))
+                    except:
+                        if sys.platform == 'win32':
+                            os.system('rmdir /S /Q \"{}\"'.format(
+                                os.path.join(sourcedir, os.pardir, p)
+                            ))
+                        else:
+                            raise
 
 
 def asin_list_from_csv(mf):
@@ -51,7 +68,7 @@ def dump_pages(asinlist, mf, dirpath, fil):
     if row[0] in asinlist or row is None:
         return
     with open(mf, 'ab') as o:
-        print('* Updating CSV pages file: ' + mf)
+        print('* Updating book pages CSV file...')
         csvwrite = csv.writer(o, delimiter=';', quotechar='"',
                               quoting=csv.QUOTE_ALL)
         csvwrite.writerow(row)
@@ -227,8 +244,15 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
         days_int = 0
         diff = 0
 
+    # move CSV file to computer temp dir to speed up updating process
+    tempdir = tempfile.mkdtemp(suffix='', prefix='extract_cover_thumbs-tmp-')
+    csv_pages_name = 'extract_cover_thumbs-book-pages.csv'
+    csv_pages = os.path.join(tempdir, csv_pages_name)
+    if os.path.isfile(os.path.join(docs, csv_pages_name)):
+        shutil.copy2(os.path.join(docs, csv_pages_name),
+                     os.path.join(tempdir, csv_pages_name))
+
     # load ASIN list from CSV
-    csv_pages = 'book-pages.csv'
     asinlist = asin_list_from_csv(csv_pages)
 
     if not skip_apnx:
@@ -313,4 +337,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                 fix_generated_thumbs(os.path.join(thumb_dir, c),
                                      is_verbose, fix_thumb)
     print("FINISH of extracting cover thumbnails...")
+    shutil.copy2(os.path.join(tempdir, csv_pages_name),
+                 os.path.join(docs, csv_pages_name))
+    clean_temp(tempdir)
     return 0
