@@ -22,8 +22,6 @@ __author__ = u'Robert Błaut <listy@blaut.biz>'
 import argparse
 import os
 import sys
-import csv
-from lib.pages import get_pages
 from lib.extract_cover_thumbs import extract_cover_thumbs
 from distutils.util import strtobool
 
@@ -54,10 +52,6 @@ parser.add_argument("-z", "--azw", help="also extract covers from AZW files",
 parser.add_argument('-d', '--days', nargs='?', metavar='DAYS', const='7',
                     help='only "younger" ebooks than specified DAYS will '
                     'be processed (default: 7 days).')
-parser.add_argument("--dump-pages",
-                    help="dump list of new books with a rough number of "
-                    "pages from last dump to a file 'book-pages.csv'",
-                    action="store_true")
 if sys.platform == 'darwin':
     parser.add_argument("-e", "--eject",
                         help="eject Kindle after completing process",
@@ -78,49 +72,10 @@ def user_yes_no_query(question):
             sys.stdout.write('Please respond with \'y\' or \'n\'.\n')
 
 if __name__ == '__main__':
-    asinlist = []
-    mf = os.path.join('book-pages.csv')
-    if args.dump_pages:
-        print('* Dumping MOBI book pages to a CSV file...')
-        if os.path.isfile(mf):
-            with open(mf) as f:
-                csvread = csv.reader(f, delimiter=';', quotechar='"',
-                                     quoting=csv.QUOTE_ALL)
-                asinlist = [row[0] for row in csvread]
-        else:
-            with open(mf, 'wb') as o:
-                csvwrite = csv.writer(o, delimiter=';', quotechar='"',
-                                      quoting=csv.QUOTE_ALL)
-                csvwrite.writerow(
-                    ['asin', 'isbn', 'author', 'title', 'pages', 'is_real']
-                )
-        for dirpath, dirs, files in os.walk(docs):
-            files.sort()
-            for file in files:
-                file_extension = os.path.splitext(file)[1].lower()
-                if file_extension not in ['.mobi', '.azw', '.azw3']:
-                    continue
-                print('* Processing: ' + file.decode(
-                    sys.getfilesystemencoding()
-                ) + '...')
-                row = get_pages(dirpath, file)
-                if row is None:
-                    continue
-                if row[0] in asinlist:
-                    print('  * Existing the book entry in the CSV file. '
-                          'Skipping... ')
-                    continue
-                with open(mf, 'ab') as o:
-                    print('  ! Updating the CSV file...')
-                    csvwrite = csv.writer(o, delimiter=';', quotechar='"',
-                                          quoting=csv.QUOTE_ALL)
-                    csvwrite.writerow(row)
-        print('* Dumping completed...')
-    else:
-        extract_cover_thumbs(args.silent, args.overwrite_pdoc_thumbs,
-                             args.overwrite_amzn_thumbs,
-                             args.overwrite_apnx, args.skip_apnx,
-                             kindlepath, args.azw, args.days,
-                             args.fix_thumb)
+    extract_cover_thumbs(args.silent, args.overwrite_pdoc_thumbs,
+                         args.overwrite_amzn_thumbs,
+                         args.overwrite_apnx, args.skip_apnx,
+                         kindlepath, args.azw, args.days,
+                         args.fix_thumb)
     if args.eject and sys.platform == 'darwin':
             os.system('diskutil eject ' + kindlepath)

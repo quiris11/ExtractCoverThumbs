@@ -22,12 +22,39 @@ from datetime import datetime
 import kindle_unpack
 from lib.apnx import APNXBuilder
 from lib.pages import find_exth
-
+from lib.pages import get_pages
 
 try:
     from PIL import Image
 except ImportError:
     sys.exit('ERROR! Python Imaging Library (PIL) or Pillow not installed.')
+
+
+def asin_list_from_csv(mf):
+    if os.path.isfile(mf):
+        with open(mf) as f:
+            csvread = csv.reader(f, delimiter=';', quotechar='"',
+                                 quoting=csv.QUOTE_ALL)
+            return [row[0] for row in csvread]
+    else:
+        with open(mf, 'wb') as o:
+            csvwrite = csv.writer(o, delimiter=';', quotechar='"',
+                                  quoting=csv.QUOTE_ALL)
+            csvwrite.writerow(
+                ['asin', 'isbn', 'author', 'title', 'pages', 'is_real']
+            )
+            return []
+
+
+def dump_pages(asinlist, mf, dirpath, fil):
+    row = get_pages(dirpath, fil)
+    if row[0] in asinlist or row is None:
+        return
+    with open(mf, 'ab') as o:
+        print('* Updating CSV pages file: ' + mf)
+        csvwrite = csv.writer(o, delimiter=';', quotechar='"',
+                              quoting=csv.QUOTE_ALL)
+        csvwrite.writerow(row)
 
 
 # get_cover_image based on Pawel Jastrzebski <pawelj@vulturis.eu> work:
@@ -199,6 +226,11 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
     else:
         days_int = 0
         diff = 0
+
+    # load ASIN list from CSV
+    csv_pages = 'book-pages.csv'
+    asinlist = asin_list_from_csv(csv_pages)
+
     if not skip_apnx:
         print("START of generating book page numbers (APNX files)...")
         generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx,
@@ -222,6 +254,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
         if f.lower().endswith(extensions) and diff <= days_int:
             fide = f.decode(sys.getfilesystemencoding())
             mobi_path = os.path.join(docs, f)
+            dump_pages(asinlist, csv_pages, docs, f)
             if is_verbose:
                 try:
                     print('* %s:' % fide, end=' ')
