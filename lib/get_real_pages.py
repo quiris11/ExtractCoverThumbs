@@ -110,8 +110,7 @@ def get_real_pages(csvfile):
                     book_url = get_search_results(root, row[2], row[3])
                 except urllib2.HTTPError:
                     print('! HTTP error. Unable to find the book details...')
-                    continue
-                book_url = get_search_results(root, row[2], row[3])
+                    book_url = None
                 if book_url:
                     pages, book_type = get_pages_book_type(book_url)
                     if pages is not None:
