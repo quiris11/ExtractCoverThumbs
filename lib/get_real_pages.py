@@ -118,7 +118,7 @@ def get_real_pages(csvfile):
                     if pages is not None:
                         row[4] = pages
                         row[5] = True
-                        print('Liczba stron: ', pages)
+                        print(' Book pages: ', pages)
                     elif book_type == 'E-book':
                         print('! E-book format only! '
                               'Using computed pages as real pages...')
