@@ -123,7 +123,7 @@ def get_real_pages(csvfile):
                               'Using computed pages as real pages...')
                         row[5] = True
                     else:
-                        print('! There are no pages found '
+                        print('! There are no page number set '
                               'on the site: ' + book_url)
                 with open(os.path.join(HOME, csvfile), 'wb') as f:
                     csvwrite = csv.writer(
