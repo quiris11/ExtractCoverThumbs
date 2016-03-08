@@ -103,6 +103,11 @@ def get_real_pages(csvfile):
                 print('* Searching for: ' + row[2] + ' - ' + row[3])
                 try:
                     root = search_book(row[3])
+                    if len(root.xpath(
+                        '*//div[contains(@class,"book-data")]'
+                    )) == 0:
+                        root = search_book(row[3].split('.')[0])
+                    book_url = get_search_results(root, row[2], row[3])
                 except urllib2.HTTPError:
                     print('! HTTP error. Unable to find the book details...')
                     continue
