@@ -79,7 +79,13 @@ def get_real_pages(csvfile):
                     './div[contains(@class,"book-general-data")]'
                     '/a[@class="bookTitle"]/@href'
                 )[0]
-                if title.lower() == title_f.lower().encode('UTF-8'):
+                if len(title) > len(title_f):
+                    sub_title = len(title_f)
+                else:
+                    sub_title = len(title)
+                if title[:sub_title].lower() == title_f[
+                    :sub_title
+                ].lower().encode('UTF-8'):
                     if author.lower() == author_f.lower().encode('UTF-8'):
                         return book_url
                         break
