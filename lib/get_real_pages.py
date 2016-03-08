@@ -83,9 +83,9 @@ def get_real_pages(csvfile):
                     sub_title = len(title_f)
                 else:
                     sub_title = len(title)
-                if title[:sub_title].lower() == title_f[
-                    :sub_title
-                ].lower().encode('UTF-8'):
+                if title[:sub_title].lower() == title_f.lower().encode(
+                    'UTF-8'
+                )[:sub_title]:
                     if author.lower() == author_f.lower().encode('UTF-8'):
                         return book_url
                         break
