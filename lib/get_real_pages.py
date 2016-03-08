@@ -59,6 +59,8 @@ def get_real_pages(csvfile):
                 '/a[@class="bookTitle"]/@href'
             )[0]
             return book_url
+        elif len(results) == 0:
+            print('  No results...')
         else:
             for result in results:
                 try:
