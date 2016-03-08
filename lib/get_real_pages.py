@@ -130,4 +130,4 @@ def get_real_pages(csvfile):
                         quoting=csv.QUOTE_ALL
                     )
                     csvwrite.writerows(dumped_list)
-get_real_pages('book-pages.csv')
+get_real_pages('extract_cover_thumbs-book-pages.csv')
