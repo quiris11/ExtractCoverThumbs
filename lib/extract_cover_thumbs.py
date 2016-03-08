@@ -58,7 +58,7 @@ def asin_list_from_csv(mf):
             csvwrite = csv.writer(o, delimiter=';', quotechar='"',
                                   quoting=csv.QUOTE_ALL)
             csvwrite.writerow(
-                ['asin', 'isbn', 'author', 'title', 'pages', 'is_real']
+                ['asin', 'lang', 'author', 'title', 'pages', 'is_real']
             )
             return []
 
