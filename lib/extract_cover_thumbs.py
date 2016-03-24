@@ -191,9 +191,11 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
                 if is_verbose:
                     print('* Generating APNX file for "%s"'
                           % f.decode(sys.getfilesystemencoding()))
-                    if os.path.isfile(os.path.join('book-pages.csv')):
-                        # print('! Using book-pages.csv file...')
-                        with open(os.path.join('book-pages.csv')) as f:
+                    if os.path.isfile(os.path.join(
+                            docs, 'extract_cover_thumbs-book-pages.csv')):
+                        with open(os.path.join(
+                                docs, 'extract_cover_thumbs-book-pages.csv'
+                        )) as f:
                             csvread = csv.reader(
                                 f, delimiter=';', quotechar='"',
                                 quoting=csv.QUOTE_ALL
@@ -208,16 +210,20 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
                             found = False
                             for i in csvread:
                                 if i[0] == asin:
-                                    print('  * Using %s pages defined '
-                                          'in book-pages.csv' % (i[4]))
+                                    print(
+                                        '  * Using %s pages defined '
+                                        'in extract_cover_thumbs-book-pages'
+                                        '.csv' % (i[4]))
                                     apnx_builder.write_apnx(
                                         mobi_path, apnx_path, int(i[4])
                                     )
                                     found = True
                                     continue
                             if not found:
-                                print('  ! Book not found in book-pages.csv.'
-                                      ' Fast algorithm used...')
+                                print(
+                                    '  ! Book not found in '
+                                    'extract_cover_thumbs-book-pages.csv.'
+                                    ' Fast algorithm used...')
                                 apnx_builder.write_apnx(mobi_path, apnx_path)
 
                     else:
