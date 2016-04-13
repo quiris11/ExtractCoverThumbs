@@ -162,7 +162,8 @@ def fix_generated_thumbs(file, is_verbose, fix_thumb):
     return False
 
 
-def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
+def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days,
+                        tempdir):
     apnx_builder = APNXBuilder()
     if days is not None:
         dtt = datetime.today()
@@ -193,9 +194,9 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
                     print('* Generating APNX file for "%s"'
                           % f.decode(sys.getfilesystemencoding()))
                     if os.path.isfile(os.path.join(
-                            docs, 'extract_cover_thumbs-book-pages.csv')):
+                            tempdir, 'extract_cover_thumbs-book-pages.csv')):
                         with open(os.path.join(
-                                docs, 'extract_cover_thumbs-book-pages.csv'
+                                tempdir, 'extract_cover_thumbs-book-pages.csv'
                         ), 'rb') as f:
                             csvread = csv.reader(
                                 f, delimiter=';', quotechar='"',
@@ -337,7 +338,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
     if not skip_apnx:
         print("START of generating book page numbers (APNX files)...")
         generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx,
-                            days)
+                            days, tempdir)
         print("FINISH of generating book page numbers (APNX files)...")
 
     if is_overwrite_pdoc_thumbs:
