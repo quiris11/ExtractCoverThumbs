@@ -20,6 +20,12 @@ def get_real_pages(csvfile):
     import urllib
     import urllib2
     HOME = os.path.expanduser("~")
+    import unicodedata
+
+    def strip_accents(text):
+        return ''.join(c for c in unicodedata.normalize(
+            'NFKD', text
+        ) if unicodedata.category(c) != 'Mn')
 
     def get_html_page(url):
         req = urllib2.Request(url)
@@ -70,13 +76,15 @@ def get_real_pages(csvfile):
                     )[0]
                 except IndexError:
                     title_f = ''
-                try:
-                    author_f = result.xpath(
-                        './div[contains(@class,"book-general-data")]'
-                        '//a[contains(@href,"autor")]//text()'
-                    )[0]
-                except IndexError:
-                    author_f = ''
+                authors_f = result.xpath(
+                    './div[contains(@class,"book-general-data")]'
+                    '//a[contains(@href,"autor")]//text()'
+                )
+                author_f = ''
+                for a in authors_f:
+                    author_f = author_f + ', ' + a
+                author_f = author_f.lstrip(', ')
+                author = author.replace('; ', ', ').replace(' i ', ', ')
                 book_url = result.xpath(
                     './div[contains(@class,"book-general-data")]'
                     '/a[@class="bookTitle"]/@href'
@@ -88,7 +96,23 @@ def get_real_pages(csvfile):
                 if title[:sub_title].lower() == title_f.lower().encode(
                     'UTF-8'
                 )[:sub_title]:
-                    if author.lower() == author_f.lower().encode('UTF-8'):
+                    # print('  Title matches...')
+                    # print('1', author_f)
+                    # print('2', author)
+                    author_f = author_f.lower().encode('UTF-8')
+                    author = author.lower()
+                    a_fs = strip_accents(
+                        author_f.decode('UTF-8')
+                    ).replace(u"\xf8", 'o')
+                    a_s = strip_accents(
+                        author.decode('UTF-8')
+                    ).replace(u"\xf8", 'o')
+                    # print('3', repr(a_fs))
+                    # print('4', repr(a_s))
+                    if author == author_f:
+                        return book_url
+                        break
+                    elif a_s == a_fs:
                         return book_url
                         break
 
