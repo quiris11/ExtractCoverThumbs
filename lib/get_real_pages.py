@@ -19,7 +19,6 @@ def get_real_pages(csvfile):
     import csv
     import urllib
     import urllib2
-    HOME = os.path.expanduser("~")
     import unicodedata
 
     def strip_accents(text):
@@ -116,8 +115,8 @@ def get_real_pages(csvfile):
                         return book_url
                         break
 
-    if os.path.isfile(os.path.join(HOME, csvfile)):
-        with open(os.path.join(HOME, csvfile), 'rb') as f:
+    if os.path.isfile(os.path.join(csvfile)):
+        with open(os.path.join(csvfile), 'rb') as f:
             csvread = csv.reader(
                 f, delimiter=';', quotechar='"',
                 quoting=csv.QUOTE_ALL
@@ -152,10 +151,9 @@ def get_real_pages(csvfile):
                     else:
                         print('! There are no page number set '
                               'on the site: ' + book_url)
-                with open(os.path.join(HOME, csvfile), 'wb') as f:
+                with open(os.path.join(csvfile), 'wb') as f:
                     csvwrite = csv.writer(
                         f, delimiter=';', quotechar='"',
                         quoting=csv.QUOTE_ALL
                     )
                     csvwrite.writerows(dumped_list)
-get_real_pages('extract_cover_thumbs-book-pages.csv')
