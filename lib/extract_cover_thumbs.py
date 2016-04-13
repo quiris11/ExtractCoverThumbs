@@ -25,6 +25,7 @@ import kindle_unpack
 from lib.apnx import APNXBuilder
 from lib.pages import find_exth
 from lib.pages import get_pages
+from lib.get_real_pages import get_real_pages
 
 try:
     from PIL import Image
@@ -195,7 +196,7 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days):
                             docs, 'extract_cover_thumbs-book-pages.csv')):
                         with open(os.path.join(
                                 docs, 'extract_cover_thumbs-book-pages.csv'
-                        )) as f:
+                        ), 'rb') as f:
                             csvread = csv.reader(
                                 f, delimiter=';', quotechar='"',
                                 quoting=csv.QUOTE_ALL
@@ -261,11 +262,6 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
     # load ASIN list from CSV
     asinlist = asin_list_from_csv(csv_pages)
 
-    if not skip_apnx:
-        print("START of generating book page numbers (APNX files)...")
-        generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx,
-                            days)
-        print("FINISH of generating book page numbers (APNX files)...")
     if not os.path.isdir(os.path.join(kindlepath, 'system', 'thumbnails')):
         print('* ERROR! No Kindle device found in the specified path: "' +
               os.path.join(kindlepath) + '"')
@@ -333,6 +329,17 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                 cover.save(thumbpath)
             elif is_verbose:
                 print('skipped (cover present or overwriting not forced).')
+    if True:
+        print("START of downloading real book page numbers...")
+        get_real_pages(os.path.join(
+            tempdir, 'extract_cover_thumbs-book-pages.csv'))
+        print("FINISH of downloading real book page numbers...")
+    if not skip_apnx:
+        print("START of generating book page numbers (APNX files)...")
+        generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx,
+                            days)
+        print("FINISH of generating book page numbers (APNX files)...")
+
     if is_overwrite_pdoc_thumbs:
         thumb_dir = os.path.join(kindlepath, 'system', 'thumbnails')
         thumb_list = os.listdir(thumb_dir)
