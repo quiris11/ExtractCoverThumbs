@@ -40,7 +40,7 @@ parser.add_argument("--overwrite-amzn-thumbs",
                     help="overwrite amzn ebook (EBOK) and book sample (EBSP)"
                          " cover thumbnails",
                     action="store_true")
-parser.add_argument("--overwrite-apnx", help="overwrite APNX files",
+parser.add_argument("-o", "--overwrite-apnx", help="overwrite APNX files",
                     action="store_true")
 parser.add_argument("--skip-apnx", help="skip generating APNX files",
                     action="store_true")
