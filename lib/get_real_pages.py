@@ -137,23 +137,23 @@ def get_real_pages(csvfile, mark_real_pages):
                         root = search_book(row[3].split('.')[0])
                     book_url = get_search_results(root, row[2], row[3])
                 except urllib2.HTTPError:
-                    print('! HTTP error. Unable to find the book details...')
+                    print('  ! HTTP error. Unable to find the book details...')
                     book_url = None
                 if book_url:
                     pages, book_type = get_pages_book_type(book_url)
                     if pages is not None:
                         row[4] = pages
                         row[5] = True
-                        print(' Book pages: ', pages)
+                        print('  Book pages:', pages)
                     elif book_type == 'E-book':
-                        print('! E-book format only! '
+                        print('  ! E-book format only! '
                               'Using computed pages as real pages...')
                         row[5] = True
                     else:
-                        print('! There are no page number set '
+                        print('  ! There are no page number set '
                               'on the site: ' + book_url)
                 elif mark_real_pages:
-                    print('! Marking computed pages as real pages...')
+                    print('  ! Marking computed pages as real pages...')
                     row[5] = True
 
                 with open(os.path.join(csvfile), 'wb') as f:
