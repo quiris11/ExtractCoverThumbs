@@ -234,7 +234,8 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days,
 
 def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                          is_overwrite_amzn_thumbs, is_overwrite_apnx,
-                         skip_apnx, kindlepath, is_azw, days, fix_thumb):
+                         skip_apnx, kindlepath, is_azw, days, fix_thumb,
+                         lubimy_czytac):
     docs = os.path.join(kindlepath, 'documents')
     is_verbose = not is_silent
     try:
@@ -330,7 +331,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                 cover.save(thumbpath)
             elif is_verbose:
                 print('skipped (cover present or overwriting not forced).')
-    if True:
+    if lubimy_czytac and days:
         print("START of downloading real book page numbers...")
         get_real_pages(os.path.join(
             tempdir, 'extract_cover_thumbs-book-pages.csv'))

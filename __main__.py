@@ -52,6 +52,10 @@ parser.add_argument("-z", "--azw", help="also extract covers from AZW files",
 parser.add_argument('-d', '--days', nargs='?', metavar='DAYS', const='7',
                     help='only "younger" ebooks than specified DAYS will '
                     'be processed (default: 7 days).')
+parser.add_argument("-l", "--lubimy-czytac",
+                    help="download real pages from lubimyczytac.pl "
+                    "(time-consuming process!) (only with -d)",
+                    action="store_true")
 if sys.platform == 'darwin':
     parser.add_argument("-e", "--eject",
                         help="eject Kindle after completing process",
@@ -76,6 +80,6 @@ if __name__ == '__main__':
                          args.overwrite_amzn_thumbs,
                          args.overwrite_apnx, args.skip_apnx,
                          kindlepath, args.azw, args.days,
-                         args.fix_thumb)
+                         args.fix_thumb, args.lubimy_czytac)
     if args.eject and sys.platform == 'darwin':
             os.system('diskutil eject ' + kindlepath)
