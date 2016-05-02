@@ -66,7 +66,9 @@ def asin_list_from_csv(mf):
 
 def dump_pages(asinlist, mf, dirpath, fil):
     row = get_pages(dirpath, fil)
-    if row[0] in asinlist or row is None:
+    if row is None:
+        return
+    if row[0] in asinlist:
         return
     with open(mf, 'ab') as o:
         print('* Updating book pages CSV file...')
