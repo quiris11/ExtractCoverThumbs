@@ -56,6 +56,10 @@ parser.add_argument("-l", "--lubimy-czytac",
                     help="download real pages from lubimyczytac.pl "
                     "(time-consuming process!) (only with -d)",
                     action="store_true")
+parser.add_argument("--mark-real-pages",
+                    help="mark computed pages as real pages "
+                    "(only with -l and -d)",
+                    action="store_true")
 if sys.platform == 'darwin':
     parser.add_argument("-e", "--eject",
                         help="eject Kindle after completing process",
@@ -80,6 +84,7 @@ if __name__ == '__main__':
                          args.overwrite_amzn_thumbs,
                          args.overwrite_apnx, args.skip_apnx,
                          kindlepath, args.azw, args.days,
-                         args.fix_thumb, args.lubimy_czytac)
+                         args.fix_thumb, args.lubimy_czytac,
+                         args.mark_real_pages)
     if args.eject and sys.platform == 'darwin':
             os.system('diskutil eject ' + kindlepath)

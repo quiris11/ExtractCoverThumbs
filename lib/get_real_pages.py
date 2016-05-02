@@ -12,7 +12,7 @@
 from __future__ import print_function
 
 
-def get_real_pages(csvfile):
+def get_real_pages(csvfile, mark_real_pages):
 
     from lxml.html import fromstring
     import os
@@ -152,6 +152,10 @@ def get_real_pages(csvfile):
                     else:
                         print('! There are no page number set '
                               'on the site: ' + book_url)
+                elif mark_real_pages:
+                    print('! Marking computed pages as real pages...')
+                    row[5] = True
+
                 with open(os.path.join(csvfile), 'wb') as f:
                     csvwrite = csv.writer(
                         f, delimiter=';', quotechar='"',

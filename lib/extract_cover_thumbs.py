@@ -237,7 +237,7 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days,
 def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                          is_overwrite_amzn_thumbs, is_overwrite_apnx,
                          skip_apnx, kindlepath, is_azw, days, fix_thumb,
-                         lubimy_czytac):
+                         lubimy_czytac, mark_real_pages):
     docs = os.path.join(kindlepath, 'documents')
     is_verbose = not is_silent
     try:
@@ -336,7 +336,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
     if lubimy_czytac and days:
         print("START of downloading real book page numbers...")
         get_real_pages(os.path.join(
-            tempdir, 'extract_cover_thumbs-book-pages.csv'))
+            tempdir, 'extract_cover_thumbs-book-pages.csv'), mark_real_pages)
         print("FINISH of downloading real book page numbers...")
     if not skip_apnx:
         print("START of generating book page numbers (APNX files)...")
