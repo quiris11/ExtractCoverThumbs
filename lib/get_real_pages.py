@@ -114,6 +114,7 @@ def get_real_pages(csvfile):
                     elif a_s == a_fs:
                         return book_url
                         break
+            print('  No matches in results...')
 
     if os.path.isfile(os.path.join(csvfile)):
         with open(os.path.join(csvfile), 'rb') as f:
