@@ -125,7 +125,7 @@ def get_real_pages(csvfile, mark_real_pages):
             dumped_list = list(csvread)
             for row in dumped_list:
                 if row[0] == 'asin' or row[5] == 'True' or not(
-                    row[1].lower() == 'pl' or row[1].lower() == 'pl-PL'
+                    row[1].lower() == 'pl' or row[1].lower() == 'pl-pl'
                 ):
                     continue
                 print('* Searching for: ' + row[2] + ' - ' + row[3])
