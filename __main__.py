@@ -86,5 +86,6 @@ if __name__ == '__main__':
                          kindlepath, args.azw, args.days,
                          args.fix_thumb, args.lubimy_czytac,
                          args.mark_real_pages)
-    if args.eject and sys.platform == 'darwin':
+    if sys.platform == 'darwin':
+        if args.eject:
             os.system('diskutil eject ' + kindlepath)
