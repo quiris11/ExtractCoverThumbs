@@ -5,8 +5,8 @@ Tool for recovering missing thumbnails in Cover View on Kindle e-ink devices
 
 ```
 usage: ExtractCoverThumbs [-h] [-V] [-s] [--overwrite-pdoc-thumbs]
-                          [--overwrite-amzn-thumbs] [--overwrite-apnx]
-                          [--skip-apnx] [-f] [-z] [-d [DAYS]] [--dump-pages]
+                          [--overwrite-amzn-thumbs] [-o] [--skip-apnx] [-f]
+                          [-z] [-d [DAYS]] [-l] [--mark-real-pages] [-e]
                           kindle_directory
 
 positional arguments:
@@ -21,15 +21,18 @@ optional arguments:
   --overwrite-amzn-thumbs
                         overwrite amzn ebook (EBOK) and book sample (EBSP)
                         cover thumbnails
-  --overwrite-apnx      overwrite APNX files
+  -o, --overwrite-apnx  overwrite APNX files
   --skip-apnx           skip generating APNX files
   -f, --fix-thumb       fix thumbnails for PERSONAL badge
   -z, --azw             also extract covers from AZW files
   -d [DAYS], --days [DAYS]
                         only "younger" ebooks than specified DAYS will be
                         processed (default: 7 days).
-  --dump-pages          dump list of new books with a rough number of pages
-                        from last dump
+  -l, --lubimy-czytac   download real pages from lubimyczytac.pl (time-
+                        consuming process!) (only with -d)
+  --mark-real-pages     mark computed pages as real pages (only with -l and
+                        -d)
+  -e, --eject           eject Kindle after completing process
 ```
 
 #### Additional requirements:
