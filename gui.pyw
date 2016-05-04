@@ -34,7 +34,7 @@ class ThreadedTask(threading.Thread):
     def __init__(self, outqueue, kindlepath, days, is_log,
                  is_overwrite_pdoc_thumbs, is_overwrite_amzn_thumbs,
                  is_overwrite_apnx, skip_apnx, is_azw, is_fix_thumb,
-                 status, run_button):
+                 status, run_button, lubimy_czytac, mark_real_pages):
         threading.Thread.__init__(self)
         self.outqueue = outqueue
         self.kindlepath = kindlepath
@@ -44,6 +44,8 @@ class ThreadedTask(threading.Thread):
         self.is_overwrite_amzn_thumbs = is_overwrite_amzn_thumbs
         self.is_overwrite_apnx = is_overwrite_apnx
         self.skip_apnx = skip_apnx
+        self.lubimy_czytac = lubimy_czytac
+        self.mark_real_pages = mark_real_pages
         self.is_azw = is_azw
         self.is_fix_thumb = is_fix_thumb
         self.status = status
@@ -57,7 +59,9 @@ class ThreadedTask(threading.Thread):
                 self.is_overwrite_apnx.get(),
                 self.skip_apnx.get(), self.kindlepath.get(),
                 self.is_azw.get(), None,
-                self.is_fix_thumb.get()
+                self.is_fix_thumb.get(),
+                self.lubimy_czytac.get(),
+                self.mark_real_pages.get()
             )
         else:
             extract_cover_thumbs(
@@ -66,7 +70,9 @@ class ThreadedTask(threading.Thread):
                 self.is_overwrite_apnx.get(),
                 self.skip_apnx.get(), self.kindlepath.get(),
                 self.is_azw.get(), self.days.get(),
-                self.is_fix_thumb.get()
+                self.is_fix_thumb.get(),
+                self.lubimy_czytac.get(),
+                self.mark_real_pages.get()
             )
         self.outqueue.put(sentinel)
 
@@ -94,6 +100,8 @@ class App:
         self.is_overwrite_pdoc_thumbs = tk.BooleanVar()
         self.is_overwrite_amzn_thumbs = tk.BooleanVar()
         self.is_overwrite_apnx = tk.BooleanVar()
+        self.lubimy_czytac = tk.BooleanVar()
+        self.mark_real_pages = tk.BooleanVar()
         self.kindlepath = tk.StringVar()
         self.status = tk.StringVar()
         self.days = tk.StringVar()
@@ -132,12 +140,21 @@ class App:
         self.days_checkbox.deselect()
         self.days_checkbox.pack(side=tk.TOP, anchor=tk.NW)
 
-        self.log_checkbox = tk.Checkbutton(
-            self.frame2, text="Write less informations in Message Window?",
-            variable=self.is_log
+        self.lubimy_czytac_checkbox = tk.Checkbutton(
+            self.frame2, text="Download real pages from lubimyczytac.pl? "
+                              "(a time-consuming process!)",
+            variable=self.lubimy_czytac, state=tk.DISABLED,
+            command=self.lubimy_czytac_check
         )
-        self.log_checkbox.deselect()
-        self.log_checkbox.pack(side=tk.TOP, anchor=tk.NW)
+        self.lubimy_czytac_checkbox.deselect()
+        self.lubimy_czytac_checkbox.pack(side=tk.TOP, anchor=tk.NW)
+
+        self.mark_real_pages_checkbox = tk.Checkbutton(
+            self.frame2, text="Mark computed pages as real pages?",
+            variable=self.mark_real_pages, state=tk.DISABLED
+        )
+        self.mark_real_pages_checkbox.deselect()
+        self.mark_real_pages_checkbox.pack(side=tk.TOP, anchor=tk.NW)
 
         self.apnx_checkbox = tk.Checkbutton(
             self.frame2, text="Skip generating book page numbers "
@@ -154,6 +171,13 @@ class App:
         )
         self.fix_thumb_checkbox.deselect()
         self.fix_thumb_checkbox.pack(side=tk.TOP, anchor=tk.NW)
+
+        self.log_checkbox = tk.Checkbutton(
+            self.frame2, text="Write less informations in Message Window?",
+            variable=self.is_log
+        )
+        self.log_checkbox.deselect()
+        self.log_checkbox.pack(side=tk.TOP, anchor=tk.NW)
 
         self.labelframe = tk.LabelFrame(
             self.frame2,
@@ -225,9 +249,22 @@ class App:
     def naccheck(self):
         if self.nac.get() == 0:
             self.days_entry.delete(0, tk.END)
+            self.lubimy_czytac_checkbox.deselect()
             self.days_entry.configure(state='disabled')
+            self.mark_real_pages_checkbox.deselect()
+            self.lubimy_czytac_checkbox.configure(state='disabled')
+            self.mark_real_pages_checkbox.configure(state='disabled')
         else:
             self.days_entry.configure(state='normal')
+            self.days_entry.insert(0, '7')
+            self.lubimy_czytac_checkbox.configure(state='normal')
+
+    def lubimy_czytac_check(self):
+        if self.lubimy_czytac.get() is False:
+            self.mark_real_pages_checkbox.configure(state='disabled')
+            self.mark_real_pages_checkbox.deselect()
+        else:
+            self.mark_real_pages_checkbox.configure(state='normal')
 
     def askdirectory(self):
         if sys.platform == 'win32':
@@ -260,7 +297,9 @@ class App:
                      self.is_overwrite_amzn_thumbs,
                      self.is_overwrite_apnx, self.skip_apnx,
                      self.is_azw, self.is_fix_thumb,
-                     self.status, self.run_button).start()
+                     self.status, self.run_button,
+                     self.lubimy_czytac,
+                     self.mark_real_pages).start()
         root.after(250, self.update, outqueue)
 
 root = tk.Tk()
