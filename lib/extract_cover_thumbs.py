@@ -197,9 +197,9 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days,
                     print('* Generating APNX file for "%s"'
                           % f.decode(sys.getfilesystemencoding()))
                     if os.path.isfile(os.path.join(
-                            tempdir, 'extract_cover_thumbs-book-pages.csv')):
+                            tempdir, 'extract_cover_thumbs_book_pages2.csv')):
                         with open(os.path.join(
-                                tempdir, 'extract_cover_thumbs-book-pages.csv'
+                                tempdir, 'extract_cover_thumbs_book_pages2.csv'
                         ), 'rb') as f1:
                             csvread = csv.reader(
                                 f1, delimiter=';', quotechar='"',
@@ -228,7 +228,7 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days,
                             if not found:
                                 print(
                                     '  ! Book not found in '
-                                    'extract_cover_thumbs-book-pages.csv.'
+                                    'extract_cover_thumbs_book_pages2.csv.'
                                     ' Fast algorithm used...')
                                 apnx_builder.write_apnx(mobi_path, apnx_path)
 
@@ -259,7 +259,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
 
     # move CSV file to computer temp dir to speed up updating process
     tempdir = tempfile.mkdtemp(suffix='', prefix='extract_cover_thumbs-tmp-')
-    csv_pages_name = 'extract_cover_thumbs-book-pages.csv'
+    csv_pages_name = 'extract_cover_thumbs_book_pages2.csv'
     csv_pages = os.path.join(tempdir, csv_pages_name)
     if os.path.isfile(os.path.join(docs, csv_pages_name)):
         shutil.copy2(os.path.join(docs, csv_pages_name),
@@ -338,7 +338,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
     if lubimy_czytac and days:
         print("START of downloading real book page numbers...")
         get_real_pages(os.path.join(
-            tempdir, 'extract_cover_thumbs-book-pages.csv'), mark_real_pages)
+            tempdir, 'extract_cover_thumbs_book_pages2.csv'), mark_real_pages)
         print("FINISH of downloading real book page numbers...")
     if not skip_apnx:
         print("START of generating book page numbers (APNX files)...")
