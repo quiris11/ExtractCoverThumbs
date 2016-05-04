@@ -110,6 +110,7 @@ def get_pages(dirpath, mfile):
         author,
         title,
         locations / 15 + 1,
-        False
+        False,
+        os.path.join(mfile)
     ]
     return row

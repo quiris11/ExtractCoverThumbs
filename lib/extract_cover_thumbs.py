@@ -59,7 +59,8 @@ def asin_list_from_csv(mf):
             csvwrite = csv.writer(o, delimiter=';', quotechar='"',
                                   quoting=csv.QUOTE_ALL)
             csvwrite.writerow(
-                ['asin', 'lang', 'author', 'title', 'pages', 'is_real']
+                ['asin', 'lang', 'author', 'title', 'pages', 'is_real',
+                 'file_path']
             )
             return []
 
@@ -199,13 +200,13 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days,
                             tempdir, 'extract_cover_thumbs-book-pages.csv')):
                         with open(os.path.join(
                                 tempdir, 'extract_cover_thumbs-book-pages.csv'
-                        ), 'rb') as f:
+                        ), 'rb') as f1:
                             csvread = csv.reader(
-                                f, delimiter=';', quotechar='"',
+                                f1, delimiter=';', quotechar='"',
                                 quoting=csv.QUOTE_ALL
                             )
-                            with open(mobi_path, 'rb') as f:
-                                mobi_content = f.read()
+                            with open(mobi_path, 'rb') as f2:
+                                mobi_content = f2.read()
                             if mobi_content[60:68] != 'BOOKMOBI':
                                 print('* Invalid file format. Skipping...')
                                 asin = ''
@@ -213,7 +214,8 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days,
                                 asin = find_exth(113, mobi_content)
                             found = False
                             for i in csvread:
-                                if i[0] == asin:
+                                if (i[0] == asin and i[0] != '* NONE *') or (
+                                        i[0] == '* NONE *' and i[6] == f):
                                     print(
                                         '  * Using %s pages defined '
                                         'in extract_cover_thumbs-book-pages'
