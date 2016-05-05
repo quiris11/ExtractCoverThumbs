@@ -68,7 +68,7 @@ def asin_list_from_csv(mf):
                 ['asin', 'lang', 'author', 'title', 'pages', 'is_real',
                  'file_path']
             )
-            return []
+            return [], []
 
 
 def dump_pages(asinlist, filelist, mf, dirpath, fil):
