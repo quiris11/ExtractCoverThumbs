@@ -95,9 +95,6 @@ def get_real_pages(csvfile, mark_real_pages):
                 if title[:sub_title].lower() == title_f.lower().encode(
                     'UTF-8'
                 )[:sub_title]:
-                    # print('  Title matches...')
-                    # print('1', author_f)
-                    # print('2', author)
                     author_f = author_f.lower().encode('UTF-8')
                     author = author.lower()
                     a_fs = strip_accents(
@@ -106,12 +103,15 @@ def get_real_pages(csvfile, mark_real_pages):
                     a_s = strip_accents(
                         author.decode('UTF-8')
                     ).replace(u"\xf8", 'o')
-                    # print('3', repr(a_fs))
-                    # print('4', repr(a_s))
+                    a_fsrt = ''.join(sorted(set(a_fs.lower()))).strip()
+                    a_srt = ''.join(sorted(set(a_s.lower()))).strip()
                     if author == author_f:
                         return book_url
                         break
                     elif a_s == a_fs:
+                        return book_url
+                        break
+                    elif a_srt == a_fsrt:
                         return book_url
                         break
             print('  No matches in results...')
