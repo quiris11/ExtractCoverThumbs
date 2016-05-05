@@ -53,7 +53,13 @@ def asin_list_from_csv(mf):
         with open(mf) as f:
             csvread = csv.reader(f, delimiter=';', quotechar='"',
                                  quoting=csv.QUOTE_ALL)
-            return [row[0] for row in csvread]
+            asinlist = []
+            filelist = []
+            for row in csvread:
+                if row[0] != '* NONE *':
+                    asinlist.append(row[0])
+                filelist.append(row[6])
+            return asinlist, filelist
     else:
         with open(mf, 'wb') as o:
             csvwrite = csv.writer(o, delimiter=';', quotechar='"',
@@ -65,11 +71,13 @@ def asin_list_from_csv(mf):
             return []
 
 
-def dump_pages(asinlist, mf, dirpath, fil):
+def dump_pages(asinlist, filelist, mf, dirpath, fil):
     row = get_pages(dirpath, fil)
     if row is None:
         return
     if row[0] in asinlist:
+        return
+    if row[6] in filelist:
         return
     with open(mf, 'ab') as o:
         print('* Updating book pages CSV file...')
@@ -266,7 +274,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                      os.path.join(tempdir, csv_pages_name))
 
     # load ASIN list from CSV
-    asinlist = asin_list_from_csv(csv_pages)
+    asinlist, filelist = asin_list_from_csv(csv_pages)
 
     if not os.path.isdir(os.path.join(kindlepath, 'system', 'thumbnails')):
         print('* ERROR! No Kindle device found in the specified path: "' +
@@ -286,7 +294,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
         if f.lower().endswith(extensions) and diff <= days_int:
             fide = f.decode(sys.getfilesystemencoding())
             mobi_path = os.path.join(docs, f)
-            dump_pages(asinlist, csv_pages, docs, f)
+            dump_pages(asinlist,filelist, csv_pages, docs, f)
             if is_verbose:
                 try:
                     print('* %s:' % fide, end=' ')
