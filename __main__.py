@@ -60,10 +60,15 @@ parser.add_argument("--mark-real-pages",
                     help="mark computed pages as real pages "
                     "(only with -l and -d)",
                     action="store_true")
+
 if sys.platform == 'darwin':
     parser.add_argument("-e", "--eject",
                         help="eject Kindle after completing process",
                         action="store_true")
+
+if sys.platform == "win32":
+    from lib.win_utf8_console import fix_broken_win_console
+    fix_broken_win_console()
 
 args = parser.parse_args()
 
