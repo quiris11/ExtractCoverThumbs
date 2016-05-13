@@ -225,9 +225,8 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days,
                                 if (i[0] == asin and i[0] != '* NONE *') or (
                                         i[0] == '* NONE *' and i[6] == f):
                                     print(
-                                        '  * Using %s pages defined '
-                                        'in extract_cover_thumbs-book-pages'
-                                        '.csv' % (i[4]))
+                                        '  * Using %s pages defined in CSV '
+                                        'file in Kindle/documents' % (i[4]))
                                     apnx_builder.write_apnx(
                                         mobi_path, apnx_path, int(i[4])
                                     )
