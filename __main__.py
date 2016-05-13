@@ -47,7 +47,7 @@ parser.add_argument("--skip-apnx", help="skip generating APNX files",
 parser.add_argument("-f", "--fix-thumb",
                     help="fix thumbnails for PERSONAL badge",
                     action="store_true")
-parser.add_argument("-z", "--azw", help="also extract covers from AZW files",
+parser.add_argument("-z", "--azw", help="process also AZW files",
                     action="store_true")
 parser.add_argument('-d', '--days', nargs='?', metavar='DAYS', const='7',
                     help='only "younger" ebooks than specified DAYS will '

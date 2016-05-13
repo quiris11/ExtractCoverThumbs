@@ -24,7 +24,7 @@ optional arguments:
   -o, --overwrite-apnx  overwrite APNX files
   --skip-apnx           skip generating APNX files
   -f, --fix-thumb       fix thumbnails for PERSONAL badge
-  -z, --azw             also extract covers from AZW files
+  -z, --azw             process also AZW files
   -d [DAYS], --days [DAYS]
                         only "younger" ebooks than specified DAYS will be
                         processed (default: 7 days).
