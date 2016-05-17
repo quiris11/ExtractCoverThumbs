@@ -105,7 +105,7 @@ def get_real_pages(csvfile, mark_real_pages):
                     ).replace(u"\xf8", 'o')
                     a_fsrt = ''.join(sorted(set(a_fs.lower()))).strip()
                     a_srt = ''.join(sorted(
-                        set(a_s.lower()))).strip().replace(',','')
+                        set(a_s.lower()))).strip().replace(',', '')
                     if author == author_f:
                         return book_url
                         break
