@@ -125,11 +125,14 @@ def get_real_pages(csvfile, mark_real_pages):
             )
             dumped_list = list(csvread)
             for row in dumped_list:
-                if row[0] == 'asin' or row[5] == 'True' or not(
-                    row[1].lower() == 'pl' or row[1].lower() == 'pl-pl'
-                ):
+                try:
+                    if row[0] == 'asin' or row[5] == 'True' or not(
+                        row[1].lower() == 'pl' or row[1].lower() == 'pl-pl'
+                    ):
+                        continue
+                    print('* Searching for: ' + row[2] + ' - ' + row[3])
+                except IndexError:
                     continue
-                print('* Searching for: ' + row[2] + ' - ' + row[3])
                 try:
                     root = search_book(row[3])
                     if len(root.xpath(
