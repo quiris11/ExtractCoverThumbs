@@ -56,8 +56,11 @@ def asin_list_from_csv(mf):
             asinlist = []
             filelist = []
             for row in csvread:
-                if row[0] != '* NONE *':
-                    asinlist.append(row[0])
+                try:
+                    if row[0] != '* NONE *':
+                        asinlist.append(row[0])
+                except IndexError:
+                    continue
                 filelist.append(row[6])
             return asinlist, filelist
     else:
@@ -222,15 +225,22 @@ def generate_apnx_files(dir_list, docs, is_verbose, is_overwrite_apnx, days,
                                 asin = find_exth(113, mobi_content)
                             found = False
                             for i in csvread:
-                                if (i[0] == asin and i[0] != '* NONE *') or (
-                                        i[0] == '* NONE *' and i[6] == f):
-                                    print(
-                                        '  * Using %s pages defined in CSV '
-                                        'file in Kindle/documents' % (i[4]))
-                                    apnx_builder.write_apnx(
-                                        mobi_path, apnx_path, int(i[4])
-                                    )
-                                    found = True
+                                try:
+                                    if (
+                                        i[0] == asin and i[0] != '* NONE *'
+                                    ) or (
+                                        i[0] == '* NONE *' and i[6] == f
+                                    ):
+                                        print(
+                                            '  * Using %s pages defined in CSV'
+                                            ' file in Kindle/documents' % (
+                                                i[4]))
+                                        apnx_builder.write_apnx(
+                                            mobi_path, apnx_path, int(i[4])
+                                        )
+                                        found = True
+                                        continue
+                                except IndexError:
                                     continue
                             if not found:
                                 print(
@@ -293,7 +303,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
         if f.lower().endswith(extensions) and diff <= days_int:
             fide = f.decode(sys.getfilesystemencoding())
             mobi_path = os.path.join(docs, f)
-            dump_pages(asinlist,filelist, csv_pages, docs, f)
+            dump_pages(asinlist, filelist, csv_pages, docs, f)
             if is_verbose:
                 try:
                     print('* %s:' % fide, end=' ')
