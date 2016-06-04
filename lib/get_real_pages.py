@@ -57,6 +57,8 @@ def get_real_pages(csvfile, mark_real_pages):
             return None, book_type
 
     def get_search_results(tree, author, title):
+        title = title.decode('UTF-8').lower().encode('UTF-8')
+        author = author.decode('UTF-8').lower().encode('UTF-8')
         results = tree.xpath('*//div[contains(@class,"book-data")]')
         if len(results) == 1:
             book_url = results[0].xpath(
@@ -92,20 +94,18 @@ def get_real_pages(csvfile, mark_real_pages):
                     sub_title = len(title_f)
                 else:
                     sub_title = len(title)
-                if title[:sub_title].lower() == title_f.lower().encode(
-                    'UTF-8'
-                )[:sub_title]:
-                    author_f = author_f.lower().encode('UTF-8')
-                    author = author.lower()
+                author_f = author_f.lower().encode('UTF-8')
+                title_f = title_f.lower().encode('UTF-8')
+                if title[:sub_title] == title_f[:sub_title]:
                     a_fs = strip_accents(
                         author_f.decode('UTF-8')
                     ).replace(u"\xf8", 'o')
                     a_s = strip_accents(
                         author.decode('UTF-8')
                     ).replace(u"\xf8", 'o')
-                    a_fsrt = ''.join(sorted(set(a_fs.lower()))).strip()
+                    a_fsrt = ''.join(sorted(set(a_fs))).strip()
                     a_srt = ''.join(sorted(
-                        set(a_s.lower()))).strip().replace(',', '')
+                        set(a_s))).strip().replace(',', '')
                     if author == author_f:
                         return book_url
                         break
