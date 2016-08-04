@@ -1,4 +1,4 @@
-ExtractCoverThumbs
+ExtractCoverThumbs [![Release](https://img.shields.io/github/release/quiris11/extractcoverthumbs.svg)](https://github.com/quiris11/extractcoverthumbs/releases/latest)
 ==================
 
 Tool for recovering missing thumbnails in Cover View on Kindle e-ink devices
