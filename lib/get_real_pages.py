@@ -130,7 +130,8 @@ def get_real_pages(csvfile, mark_real_pages):
                         row[1].lower() == 'pl' or row[1].lower() == 'pl-pl'
                     ):
                         continue
-                    print('* Searching for: ' + row[2] + ' - ' + row[3])
+                    print('* Searching for: ' + row[2].decode(
+                          'UTF-8') + ' - ' + row[3].decode('UTF-8'))
                 except IndexError:
                     continue
                 try:
