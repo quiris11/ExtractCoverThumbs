@@ -26,6 +26,7 @@ from lib.apnx import APNXBuilder
 from lib.pages import find_exth
 from lib.pages import get_pages
 from lib.get_real_pages import get_real_pages
+from lib.kfxmeta import get_kindle_kfx_metadata
 
 try:
     from PIL import Image
@@ -123,27 +124,31 @@ def get_cover_image(section, mh, metadata, doctype, file, fide, is_verbose,
         else:
             imgnames.append(i)
         if len(imgnames) - 1 == int(cover_offset):
-            cover = Image.open(BytesIO(data))
-            if fix_thumb:
-                cover.thumbnail((283, 415), Image.ANTIALIAS)
-            else:
-                cover.thumbnail((305, 470), Image.ANTIALIAS)
-            cover = cover.convert('L')
-            if doctype == 'PDOC' and fix_thumb:
-                pdoc_cover = Image.new(
-                    "L",
-                    (cover.size[0], cover.size[1] + 55),
-                    "white"
-                )
-                pdoc_cover.paste(cover, (0, 0))
-                if is_verbose:
-                    print('DONE!')
-                return pdoc_cover
-            else:
-                if is_verbose:
-                    print('DONE!')
-                return cover
+            return process_image(data, fix_thumb, doctype, is_verbose)
     return False
+
+
+def process_image(data, fix_thumb, doctype, is_verbose):
+    cover = Image.open(BytesIO(data))
+    if fix_thumb:
+        cover.thumbnail((283, 415), Image.ANTIALIAS)
+    else:
+        cover.thumbnail((305, 470), Image.ANTIALIAS)
+    cover = cover.convert('L')
+    if doctype == 'PDOC' and fix_thumb:
+        pdoc_cover = Image.new(
+            "L",
+            (cover.size[0], cover.size[1] + 55),
+            "white"
+        )
+        pdoc_cover.paste(cover, (0, 0))
+        if is_verbose:
+            print('DONE!')
+        return pdoc_cover
+    else:
+        if is_verbose:
+            print('DONE!')
+        return cover
 
 
 def fix_generated_thumbs(file, is_verbose, fix_thumb):
@@ -291,9 +296,9 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
         return 1
     print("START of extracting cover thumbnails...")
     if is_azw:
-        extensions = ('.azw', '.azw3', '.mobi')
+        extensions = ('.azw', '.azw3', '.mobi', '.kfx')
     else:
-        extensions = ('.azw3', '.mobi')
+        extensions = ('.azw3', '.mobi', '.kfx')
     for f in dir_list:
         if days is not None:
             dt = os.path.getctime(os.path.join(docs, f))
@@ -301,32 +306,50 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
             dt = datetime.strptime(dt, '%Y-%m-%d')
             diff = (dtt - dt).days
         if f.lower().endswith(extensions) and diff <= days_int:
+            if f.lower().endswith('.kfx'):
+                is_kfx = True
+            else:
+                is_kfx = False
             fide = f.decode(sys.getfilesystemencoding())
-            mobi_path = os.path.join(docs, f)
-            dump_pages(asinlist, filelist, csv_pages, docs, f)
             if is_verbose:
                 try:
                     print('* %s:' % fide, end=' ')
                 except:
                     print('* %r:' % fide, end=' ')
-            with open(mobi_path, 'rb') as mf:
-                mobi_content = mf.read()
-                if mobi_content[60:68] != 'BOOKMOBI':
-                    print('* Not a valid MOBI file "%s".'
-                          % fide)
+            mobi_path = os.path.join(docs, f)
+            if is_kfx:
+                try:
+                    kfx_metadata = get_kindle_kfx_metadata(mobi_path)
+                except Exception as e:
+                    print('ERROR! Extracting metadata from %s: %s' % (
+                        fide, unicode(e)
+                    ))
                     continue
-            section = kindle_unpack.Sectionizer(mobi_path)
-            mhlst = [kindle_unpack.MobiHeader(section, 0)]
-            mh = mhlst[0]
-            metadata = mh.getmetadata()
-            try:
-                asin = metadata['ASIN'][0]
-            except KeyError:
-                asin = None
-            try:
-                doctype = metadata['Document Type'][0]
-            except KeyError:
-                doctype = None
+                doctype = kfx_metadata.get("cde_content_type")
+                if not doctype:
+                    print('ERROR! No document type found in "%s"' % fide)
+                    continue
+                asin = kfx_metadata.get("ASIN")
+            else:
+                dump_pages(asinlist, filelist, csv_pages, docs, f)
+                with open(mobi_path, 'rb') as mf:
+                    mobi_content = mf.read()
+                    if mobi_content[60:68] != 'BOOKMOBI':
+                        print('* Not a valid MOBI file "%s".'
+                              % fide)
+                        continue
+                section = kindle_unpack.Sectionizer(mobi_path)
+                mhlst = [kindle_unpack.MobiHeader(section, 0)]
+                mh = mhlst[0]
+                metadata = mh.getmetadata()
+                try:
+                    asin = metadata['ASIN'][0]
+                except KeyError:
+                    asin = None
+                try:
+                    doctype = metadata['Document Type'][0]
+                except KeyError:
+                    doctype = None
             if asin is None:
                 print('ERROR! No ASIN found in "%s"' % fide)
                 continue
@@ -339,11 +362,22 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                     (is_overwrite_amzn_thumbs and (
                         doctype == 'EBOK' or doctype == 'EBSP'
                     ))):
+                if is_kfx:
+                    image_data = kfx_metadata.get("cover_image_data")
+                    if not image_data:
+                        print('ERROR! No cover image found in "%s"' % fide)
+                        continue
                 if is_verbose:
-                    print('EXTRACTING COVER:', end=' ')
+                    print('PROCESSING COVER:', end=' ')
                 try:
-                    cover = get_cover_image(section, mh, metadata, doctype, f,
-                                            fide, is_verbose, fix_thumb)
+                    if is_kfx:
+                        cover = process_image(image_data.decode('base64'),
+                                              fix_thumb, doctype,
+                                              is_verbose)
+                    else:
+                        cover = get_cover_image(section, mh, metadata,
+                                                doctype, f,
+                                                fide, is_verbose, fix_thumb)
                 except IOError:
                     print('FAILED! Image format unrecognized...')
                     continue
