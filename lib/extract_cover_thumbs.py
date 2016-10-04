@@ -296,9 +296,9 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
         return 1
     print("START of extracting cover thumbnails...")
     if is_azw:
-        extensions = ('.azw', '.azw3', '.mobi', '.kfx')
+        extensions = ('.azw', '.azw3', '.mobi', '.kfx', '.azw8')
     else:
-        extensions = ('.azw3', '.mobi', '.kfx')
+        extensions = ('.azw3', '.mobi', '.kfx', '.azw8')
     for f in dir_list:
         if days is not None:
             dt = os.path.getctime(os.path.join(docs, f))
@@ -306,7 +306,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
             dt = datetime.strptime(dt, '%Y-%m-%d')
             diff = (dtt - dt).days
         if f.lower().endswith(extensions) and diff <= days_int:
-            if f.lower().endswith('.kfx'):
+            if f.lower().endswith('.kfx') or f.lower().endswith('.azw8'):
                 is_kfx = True
             else:
                 is_kfx = False
