@@ -199,16 +199,12 @@ def generate_apnx_files(docs, is_verbose, is_overwrite_apnx, days,
                 dt = datetime.strptime(dt, '%Y-%m-%d')
                 diff = (dtt - dt).days
             if name.lower().endswith(('.azw3', '.mobi', '.azw')) and diff <= days_int:
-                if os.path.isdir(os.path.join(root,
-                                              os.path.splitext(name)[0] + '.sdr')):
-                    apnx_path = os.path.join(
-                        root, os.path.splitext(name)[0] + '.sdr',
-                        os.path.splitext(name)[0] + '.apnx'
-                    )
-                else:
-                    apnx_path = os.path.join(
-                        root, os.path.splitext(name)[0] + '.apnx'
-                    )
+                sdr_dir = os.path.join(root, os.path.splitext(
+                                       name)[0] + '.sdr')
+                if not os.path.isdir(sdr_dir):
+                    os.makedirs(sdr_dir)
+                apnx_path = os.path.join(sdr_dir, os.path.splitext(
+                                         name)[0] + '.apnx')
                 if not os.path.isfile(apnx_path) or is_overwrite_apnx:
                     if is_verbose:
                         print('* Generating APNX file for "%s"'
