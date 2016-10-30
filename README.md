@@ -1,7 +1,8 @@
 ExtractCoverThumbs [![Release](https://img.shields.io/github/release/quiris11/extractcoverthumbs.svg)](https://github.com/quiris11/extractcoverthumbs/releases/latest)
 ==================
 
-Tool for recovering missing thumbnails in Cover View on Kindle e-ink devices
+Tool for recovering missing thumbnails in Cover View on Kindle e-ink devices. 
+The tool **does not work** on Kindle with firmware **5.8.5 and newer** for ebooks **downloaded from Kindle Personal Documents Service**.
 
 ```
 usage: ExtractCoverThumbs [-h] [-V] [-s] [--overwrite-pdoc-thumbs]
