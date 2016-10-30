@@ -192,6 +192,9 @@ def generate_apnx_files(docs, is_verbose, is_overwrite_apnx, days,
         diff = 0
     for root, dirs, files in os.walk(docs):
         for name in files:
+            if 'documents' + os.path.sep + 'dictionaries' in root:
+                print('! Excluded dictionary:', name)
+                continue
             mobi_path = os.path.join(root, name)
             if days is not None:
                 dt = os.path.getctime(mobi_path)
