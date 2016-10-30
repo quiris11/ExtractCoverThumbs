@@ -197,7 +197,10 @@ def generate_apnx_files(docs, is_verbose, is_overwrite_apnx, days,
                 continue
             mobi_path = os.path.join(root, name)
             if days is not None:
-                dt = os.path.getctime(mobi_path)
+                try:
+                    dt = os.path.getctime(mobi_path)
+                except OSError:
+                    continue
                 dt = datetime.fromtimestamp(dt).strftime('%Y-%m-%d')
                 dt = datetime.strptime(dt, '%Y-%m-%d')
                 diff = (dtt - dt).days
@@ -294,7 +297,10 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
     for root, dirs, files in os.walk(docs):
         for name in files:
             if days is not None:
-                dt = os.path.getctime(os.path.join(root, name))
+                try:
+                    dt = os.path.getctime(os.path.join(root, name))
+                except OSError:
+                    continue
                 dt = datetime.fromtimestamp(dt).strftime('%Y-%m-%d')
                 dt = datetime.strptime(dt, '%Y-%m-%d')
                 diff = (dtt - dt).days
