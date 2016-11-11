@@ -27,6 +27,7 @@ from lib.pages import find_exth
 from lib.pages import get_pages
 from lib.get_real_pages import get_real_pages
 from lib.kfxmeta import get_kindle_kfx_metadata
+from lib.dualmetafix import DualMobiMetaFix
 
 try:
     from PIL import Image
@@ -263,7 +264,7 @@ def generate_apnx_files(docs, is_verbose, is_overwrite_apnx, days,
 def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                          is_overwrite_amzn_thumbs, is_overwrite_apnx,
                          skip_apnx, kindlepath, is_azw, days, fix_thumb,
-                         lubimy_czytac, mark_real_pages):
+                         lubimy_czytac, mark_real_pages, patch_azw3):
     docs = os.path.join(kindlepath, 'documents')
     is_verbose = not is_silent
     if days is not None:
@@ -349,6 +350,14 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                         doctype = metadata['Document Type'][0]
                     except KeyError:
                         doctype = None
+                if (patch_azw3 is True and
+                        doctype == 'PDOC' and
+                        asin is not None and
+                        name.lower().endswith('.azw3')):
+                    print("PATCHING AZW3", end=' ')
+                    dmf = DualMobiMetaFix(mobi_path)
+                    open(mobi_path, 'wb').write(dmf.getresult())
+                    doctype = 'EBOK'
                 if asin is None:
                     print('ERROR! No ASIN found in "%s"' % fide)
                     continue

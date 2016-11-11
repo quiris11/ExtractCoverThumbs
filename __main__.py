@@ -47,6 +47,9 @@ parser.add_argument("--skip-apnx", help="skip generating APNX files",
 parser.add_argument("-f", "--fix-thumb",
                     help="fix thumbnails for PERSONAL badge",
                     action="store_true")
+parser.add_argument("--patch-azw3",
+                    help="change PDOC to EBOK in AZW3 files (experimental)",
+                    action="store_true")
 parser.add_argument("-z", "--azw", help="process also AZW files",
                     action="store_true")
 parser.add_argument('-d', '--days', nargs='?', metavar='DAYS', const='7',
@@ -90,7 +93,7 @@ if __name__ == '__main__':
                          args.overwrite_apnx, args.skip_apnx,
                          kindlepath, args.azw, args.days,
                          args.fix_thumb, args.lubimy_czytac,
-                         args.mark_real_pages)
+                         args.mark_real_pages, args.patch_azw3)
     if sys.platform == 'darwin':
         if args.eject:
             os.system('diskutil eject ' + kindlepath)
