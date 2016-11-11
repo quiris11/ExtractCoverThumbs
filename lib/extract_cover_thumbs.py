@@ -29,10 +29,11 @@ from lib.get_real_pages import get_real_pages
 from lib.kfxmeta import get_kindle_kfx_metadata
 from lib.dualmetafix import DualMobiMetaFix
 
+SFENC = sys.getfilesystemencoding()
 try:
     from PIL import Image
-except ImportError:
-    sys.exit('ERROR! Python Imaging Library (PIL) or Pillow not installed.')
+except ImportError as e:
+    sys.exit('CRITICAL! ' + str(e).decode(SFENC))
 
 
 def clean_temp(sourcedir):

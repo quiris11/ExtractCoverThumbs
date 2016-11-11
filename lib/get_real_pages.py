@@ -14,12 +14,18 @@ from __future__ import print_function
 
 def get_real_pages(csvfile, mark_real_pages):
 
-    from lxml.html import fromstring
     import os
     import csv
     import urllib
     import urllib2
     import unicodedata
+    import sys
+
+    SFENC = sys.getfilesystemencoding()
+    try:
+        from lxml.html import fromstring
+    except ImportError as e:
+        sys.exit('CRITICAL! ' + str(e).decode(SFENC))
 
     def strip_accents(text):
         return ''.join(c for c in unicodedata.normalize(
