@@ -298,6 +298,9 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
         extensions = ('.azw3', '.mobi', '.kfx', '.azw8')
     for root, dirs, files in os.walk(docs):
         for name in files:
+            if 'documents' + os.path.sep + 'dictionaries' in root:
+                print('! Excluded dictionary:', name)
+                continue
             if days is not None:
                 try:
                     dt = os.path.getctime(os.path.join(root, name))
