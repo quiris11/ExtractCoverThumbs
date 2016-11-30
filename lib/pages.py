@@ -87,7 +87,7 @@ def mobi_header_fields(mobi_content):
     return id, version, title, locations, dict_input, dict_output
 
 
-def get_pages(dirpath, mfile):
+def get_pages(dirpath, mfile, is_verbose):
     file_dec = mfile.decode(sys.getfilesystemencoding())
     with open(os.path.join(dirpath, mfile), 'rb') as f:
         mobi_content = f.read()
@@ -102,7 +102,8 @@ def get_pages(dirpath, mfile):
     asin = find_exth(113, mobi_content)
     dc_lang = find_exth(524, mobi_content)
     if '!DeviceUpgradeLetter!' in asin:
-        print(file_dec + ': Upgrade Letter. Skipping...')
+        if is_verbose:
+            print(file_dec + ': Upgrade Letter. Skipping...')
         return None
     row = [
         asin,

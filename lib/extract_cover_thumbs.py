@@ -77,8 +77,8 @@ def asin_list_from_csv(mf):
             return [], []
 
 
-def dump_pages(asinlist, filelist, mf, dirpath, fil):
-    row = get_pages(dirpath, fil)
+def dump_pages(asinlist, filelist, mf, dirpath, fil, is_verbose):
+    row = get_pages(dirpath, fil, is_verbose)
     if row is None:
         return
     if row[0] in asinlist:
@@ -195,9 +195,12 @@ def generate_apnx_files(docs, is_verbose, is_overwrite_apnx, days,
     for root, dirs, files in os.walk(docs):
         for name in files:
             if 'documents' + os.path.sep + 'dictionaries' in root:
-                print('! Excluded dictionary:', name)
+                if is_verbose:
+                    print('! Excluded dictionary:', name)
                 continue
             mobi_path = os.path.join(root, name)
+            if "attachables" in mobi_path:
+                continue
             if days is not None:
                 try:
                     dt = os.path.getctime(mobi_path)
@@ -214,9 +217,11 @@ def generate_apnx_files(docs, is_verbose, is_overwrite_apnx, days,
                 apnx_path = os.path.join(sdr_dir, os.path.splitext(
                                          name)[0] + '.apnx')
                 if not os.path.isfile(apnx_path) or is_overwrite_apnx:
+                    if '!DeviceUpgradeLetter!' in name:
+                        continue
                     if is_verbose:
                         print('* Generating APNX file for "%s"'
-                              % name.decode(sys.getfilesystemencoding()))
+                            % name.decode(sys.getfilesystemencoding()))
                         if os.path.isfile(os.path.join(
                                 tempdir, 'extract_cover_thumbs_book_pages2.csv')):
                             with open(os.path.join(
@@ -299,7 +304,8 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
     for root, dirs, files in os.walk(docs):
         for name in files:
             if 'documents' + os.path.sep + 'dictionaries' in root:
-                print('! Excluded dictionary:', name)
+                if is_verbose:
+                    print('! Excluded dictionary:', name)
                 continue
             if days is not None:
                 try:
@@ -321,7 +327,13 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                     except:
                         print('* %r:' % fide, end=' ')
                 mobi_path = os.path.join(root, name)
+                if "attachables" in mobi_path:
+                    continue
                 if is_kfx:
+                    if '_sample' in fide:
+                        if is_verbose:
+                            print('KFX Sample. Skipping...')
+                        continue
                     try:
                         kfx_metadata = get_kindle_kfx_metadata(mobi_path)
                     except Exception as e:
@@ -335,7 +347,11 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                         continue
                     asin = kfx_metadata.get("ASIN")
                 else:
-                    dump_pages(asinlist, filelist, csv_pages, root, name)
+                    if '!DeviceUpgradeLetter!' in fide:
+                        if is_verbose:
+                            print('Upgrade Letter. Skipping...')
+                        continue
+                    dump_pages(asinlist, filelist, csv_pages, root, name, is_verbose)
                     with open(mobi_path, 'rb') as mf:
                         mobi_content = mf.read()
                         if mobi_content[60:68] != 'BOOKMOBI':
