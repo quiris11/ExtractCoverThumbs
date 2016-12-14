@@ -222,49 +222,53 @@ def generate_apnx_files(docs, is_verbose, is_overwrite_apnx, days,
                     if is_verbose:
                         print('* Generating APNX file for "%s"'
                             % name.decode(sys.getfilesystemencoding()))
-                        if os.path.isfile(os.path.join(
-                                tempdir, 'extract_cover_thumbs_book_pages2.csv')):
-                            with open(os.path.join(
-                                    tempdir, 'extract_cover_thumbs_book_pages2.csv'
-                            ), 'rb') as f1:
-                                csvread = csv.reader(
-                                    f1, delimiter=';', quotechar='"',
-                                    quoting=csv.QUOTE_ALL
-                                )
-                                with open(mobi_path, 'rb') as f2:
-                                    mobi_content = f2.read()
-                                if mobi_content[60:68] != 'BOOKMOBI':
+                    if os.path.isfile(os.path.join(
+                            tempdir, 'extract_cover_thumbs_book_pages2.csv')):
+                        with open(os.path.join(
+                                tempdir, 'extract_cover_thumbs_book_pages2.csv'
+                        ), 'rb') as f1:
+                            csvread = csv.reader(
+                                f1, delimiter=';', quotechar='"',
+                                quoting=csv.QUOTE_ALL
+                            )
+                            with open(mobi_path, 'rb') as f2:
+                                mobi_content = f2.read()
+                            if mobi_content[60:68] != 'BOOKMOBI':
+                                if is_verbose:
                                     print('* Invalid file format. Skipping...')
-                                    asin = ''
-                                else:
-                                    asin = find_exth(113, mobi_content)
-                                found = False
-                                for i in csvread:
-                                    try:
-                                        if (
-                                            i[0] == asin and i[0] != '* NONE *'
-                                        ) or (
-                                            i[0] == '* NONE *' and i[6] == name
-                                        ):
+                                asin = ''
+                            else:
+                                asin = find_exth(113, mobi_content)
+                            found = False
+                            for i in csvread:
+                                try:
+                                    if (
+                                        i[0] == asin and i[0] != '* NONE *'
+                                    ) or (
+                                        i[0] == '* NONE *' and i[6] == name
+                                    ):
+                                        if is_verbose:
                                             print(
-                                                '  * Using %s pages defined in CSV'
-                                                ' file in Kindle/documents' % (
+                                                '  * Using %s pages defined '
+                                                'in CSV '
+                                                'file in Kindle/documents' % (
                                                     i[4]))
-                                            apnx_builder.write_apnx(
-                                                mobi_path, apnx_path, int(i[4])
-                                            )
-                                            found = True
-                                            continue
-                                    except IndexError:
+                                        apnx_builder.write_apnx(
+                                            mobi_path, apnx_path, int(i[4])
+                                        )
+                                        found = True
                                         continue
-                                if not found:
+                                except IndexError:
+                                    continue
+                            if not found:
+                                if is_verbose:
                                     print(
                                         '  ! Book not found in '
                                         'extract_cover_thumbs_book_pages2.csv.'
                                         ' Fast algorithm used...')
-                                    apnx_builder.write_apnx(mobi_path, apnx_path)
-                        else:
-                            apnx_builder.write_apnx(mobi_path, apnx_path)
+                                apnx_builder.write_apnx(mobi_path, apnx_path)
+                    else:
+                        apnx_builder.write_apnx(mobi_path, apnx_path)
 
 
 def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
