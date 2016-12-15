@@ -416,6 +416,8 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                     if not cover:
                         continue
                     cover.save(thumbpath)
+                    if is_verbose:
+                        print('DONE!')
                 elif is_verbose:
                     print('skipped (cover present or overwriting not forced).')
     if lubimy_czytac and days:
