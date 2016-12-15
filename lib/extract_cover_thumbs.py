@@ -30,10 +30,11 @@ from lib.kfxmeta import get_kindle_kfx_metadata
 from lib.dualmetafix import DualMobiMetaFix
 
 SFENC = sys.getfilesystemencoding()
-try:
-    from PIL import Image
-except ImportError as e:
-    sys.exit('CRITICAL! ' + str(e).decode(SFENC))
+
+# try:
+#     from PIL import Image
+# except ImportError as e:
+#     sys.exit('CRITICAL! ' + str(e).decode(SFENC))
 
 
 def clean_temp(sourcedir):
@@ -94,8 +95,7 @@ def dump_pages(asinlist, filelist, mf, dirpath, fil, is_verbose):
 
 # get_cover_image based on Pawel Jastrzebski <pawelj@vulturis.eu> work:
 # https://github.com/AcidWeb/KindleButler/blob/master/KindleButler/File.py
-def get_cover_image(section, mh, metadata, doctype, file, fide, is_verbose,
-                    fix_thumb):
+def get_cover_image(section, mh, metadata, doctype, file, fide, is_verbose):
     try:
         cover_offset = metadata['CoverOffset'][0]
     except KeyError:
@@ -126,60 +126,7 @@ def get_cover_image(section, mh, metadata, doctype, file, fide, is_verbose,
         else:
             imgnames.append(i)
         if len(imgnames) - 1 == int(cover_offset):
-            return process_image(data, fix_thumb, doctype, is_verbose)
-    return False
-
-
-def process_image(data, fix_thumb, doctype, is_verbose):
-    cover = Image.open(BytesIO(data))
-    if fix_thumb:
-        cover.thumbnail((283, 415), Image.ANTIALIAS)
-    else:
-        cover.thumbnail((305, 470), Image.ANTIALIAS)
-    cover = cover.convert('L')
-    if doctype == 'PDOC' and fix_thumb:
-        pdoc_cover = Image.new(
-            "L",
-            (cover.size[0], cover.size[1] + 55),
-            "white"
-        )
-        pdoc_cover.paste(cover, (0, 0))
-        if is_verbose:
-            print('DONE!')
-        return pdoc_cover
-    else:
-        if is_verbose:
-            print('DONE!')
-        return cover
-
-
-def fix_generated_thumbs(file, is_verbose, fix_thumb):
-    try:
-        cover = Image.open(file)
-    except IOError:
-        return False
-    try:
-        dpi = cover.info["dpi"]
-    except KeyError:
-        dpi = (96, 96)
-    if dpi == (96, 96) and fix_thumb:
-        if is_verbose:
-            print('* Fixing generated thumbnail "%s"...' % (file))
-        pdoc_cover = Image.new("L", (cover.size[0], cover.size[1] + 45),
-                               "white")
-        pdoc_cover.paste(cover, (0, 0))
-        pdoc_cover.save(file, dpi=[72, 72])
-    elif dpi == (72, 72) and not fix_thumb:
-        if is_verbose:
-            print('* Reverse fix for generated thumbnail "%s"...' % (file))
-        pdoc_cover = Image.new("L", (cover.size[0], cover.size[1] - 45),
-                               "white")
-        pdoc_cover.paste(cover, (0, 0))
-        pdoc_cover.save(file, dpi=[96, 96])
-    else:
-        if is_verbose:
-            print('* Generated thumbnail "%s" is OK. DPI: %s. Skipping...'
-                  % (os.path.basename(file), dpi))
+            return data
     return False
 
 
@@ -273,8 +220,8 @@ def generate_apnx_files(docs, is_verbose, is_overwrite_apnx, days,
 
 def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                          is_overwrite_amzn_thumbs, is_overwrite_apnx,
-                         skip_apnx, kindlepath, is_azw, days, fix_thumb,
-                         lubimy_czytac, mark_real_pages, patch_azw3):
+                         skip_apnx, kindlepath, is_azw, days,
+                         mark_real_pages, patch_azw3):
     docs = os.path.join(kindlepath, 'documents')
     is_verbose = not is_silent
     if days is not None:
@@ -403,41 +350,28 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                         print('PROCESSING COVER:', end=' ')
                     try:
                         if is_kfx:
-                            cover = process_image(image_data.decode('base64'),
-                                                  fix_thumb, doctype,
-                                                  is_verbose)
+                            cover = image_data.decode('base64')
                         else:
                             cover = get_cover_image(section, mh, metadata,
                                                     doctype, name,
-                                                    fide, is_verbose, fix_thumb)
+                                                    fide, is_verbose)
                     except IOError:
                         print('FAILED! Image format unrecognized...')
                         continue
                     if not cover:
                         continue
-                    cover.save(thumbpath)
+                    with open(thumbpath, 'wb') as f:
+                        f.write(cover)
+                        print('DONE!')
+                    # cover.save(thumbpath)
                 elif is_verbose:
                     print('skipped (cover present or overwriting not forced).')
-    if lubimy_czytac and days:
-        print("START of downloading real book page numbers...")
-        get_real_pages(os.path.join(
-            tempdir, 'extract_cover_thumbs_book_pages2.csv'), mark_real_pages)
-        print("FINISH of downloading real book page numbers...")
     if not skip_apnx:
         print("START of generating book page numbers (APNX files)...")
         generate_apnx_files(docs, is_verbose, is_overwrite_apnx,
                             days, tempdir)
         print("FINISH of generating book page numbers (APNX files)...")
 
-    if is_overwrite_pdoc_thumbs:
-        thumb_dir = os.path.join(kindlepath, 'system', 'thumbnails')
-        thumb_list = os.listdir(thumb_dir)
-        for c in thumb_list:
-            if c.startswith('thumbnail') and c.endswith('.jpg'):
-                if c.endswith('portrait.jpg'):
-                    continue
-                fix_generated_thumbs(os.path.join(thumb_dir, c),
-                                     is_verbose, fix_thumb)
     print("FINISH of extracting cover thumbnails...")
     shutil.copy2(os.path.join(tempdir, csv_pages_name),
                  os.path.join(docs, csv_pages_name))

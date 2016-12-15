@@ -44,9 +44,6 @@ parser.add_argument("-o", "--overwrite-apnx", help="overwrite APNX files",
                     action="store_true")
 parser.add_argument("--skip-apnx", help="skip generating APNX files",
                     action="store_true")
-parser.add_argument("-f", "--fix-thumb",
-                    help="fix thumbnails for PERSONAL badge",
-                    action="store_true")
 parser.add_argument("--patch-azw3",
                     help="change PDOC to EBOK in AZW3 files (experimental)",
                     action="store_true")
@@ -55,10 +52,6 @@ parser.add_argument("-z", "--azw", help="process also AZW files",
 parser.add_argument('-d', '--days', nargs='?', metavar='DAYS', const='7',
                     help='only "younger" ebooks than specified DAYS will '
                     'be processed (default: 7 days).')
-parser.add_argument("-l", "--lubimy-czytac",
-                    help="download real pages from lubimyczytac.pl "
-                    "(time-consuming process!) (only with -d)",
-                    action="store_true")
 parser.add_argument("--mark-real-pages",
                     help="mark computed pages as real pages "
                     "(only with -l and -d)",
@@ -92,7 +85,6 @@ if __name__ == '__main__':
                          args.overwrite_amzn_thumbs,
                          args.overwrite_apnx, args.skip_apnx,
                          kindlepath, args.azw, args.days,
-                         args.fix_thumb, args.lubimy_czytac,
                          args.mark_real_pages, args.patch_azw3)
     if sys.platform == 'darwin':
         if args.eject:
