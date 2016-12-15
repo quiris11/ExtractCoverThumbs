@@ -25,7 +25,6 @@ import kindle_unpack
 from lib.apnx import APNXBuilder
 from lib.pages import find_exth
 from lib.pages import get_pages
-from lib.get_real_pages import get_real_pages
 from lib.kfxmeta import get_kindle_kfx_metadata
 from lib.dualmetafix import DualMobiMetaFix
 
