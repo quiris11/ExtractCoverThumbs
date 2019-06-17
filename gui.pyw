@@ -34,7 +34,7 @@ class ThreadedTask(threading.Thread):
     def __init__(self, outqueue, kindlepath, days, is_log,
                  is_overwrite_pdoc_thumbs, is_overwrite_amzn_thumbs,
                  is_overwrite_apnx, skip_apnx, is_azw, is_fix_thumb,
-                 status, run_button, lubimy_czytac, mark_real_pages):
+                 status, run_button, lubimy_czytac, mark_real_pages, patch_azw3):
         threading.Thread.__init__(self)
         self.outqueue = outqueue
         self.kindlepath = kindlepath
@@ -48,6 +48,7 @@ class ThreadedTask(threading.Thread):
         self.mark_real_pages = mark_real_pages
         self.is_azw = is_azw
         self.is_fix_thumb = is_fix_thumb
+        self.patch_azw3 = patch_azw3
         self.status = status
         self.run_button = run_button
 
@@ -61,7 +62,8 @@ class ThreadedTask(threading.Thread):
                 self.is_azw.get(), None,
                 self.is_fix_thumb.get(),
                 self.lubimy_czytac.get(),
-                self.mark_real_pages.get()
+                self.mark_real_pages.get(),
+                self.patch_azw3.get()
             )
         else:
             extract_cover_thumbs(
@@ -72,7 +74,8 @@ class ThreadedTask(threading.Thread):
                 self.is_azw.get(), self.days.get(),
                 self.is_fix_thumb.get(),
                 self.lubimy_czytac.get(),
-                self.mark_real_pages.get()
+                self.mark_real_pages.get(),
+                self.patch_azw3.get()
             )
         self.outqueue.put(sentinel)
 
@@ -102,6 +105,7 @@ class App:
         self.is_overwrite_apnx = tk.BooleanVar()
         self.lubimy_czytac = tk.BooleanVar()
         self.mark_real_pages = tk.BooleanVar()
+        self.patch_azw3 = tk.BooleanVar()
         self.kindlepath = tk.StringVar()
         self.status = tk.StringVar()
         self.days = tk.StringVar()
@@ -222,6 +226,14 @@ class App:
         self.azw_checkbox.deselect()
         self.azw_checkbox.pack(side=tk.TOP, anchor=tk.NW)
 
+        self.patch_azw3_checkbox = tk.Checkbutton(
+            self.labelframe,
+            text="Change PDOC to EBOK in AZW3 files (experimental)?",
+            variable=self.patch_azw3
+        )
+        self.patch_azw3_checkbox.deselect()
+        self.patch_azw3_checkbox.pack(side=tk.TOP, anchor=tk.NW)
+
         self.frame3 = tk.Frame(master, borderwidth=5)
         self.frame3.pack(side=tk.TOP, anchor=tk.W)
 
@@ -299,7 +311,7 @@ class App:
                      self.is_azw, self.is_fix_thumb,
                      self.status, self.run_button,
                      self.lubimy_czytac,
-                     self.mark_real_pages).start()
+                     self.mark_real_pages, self.patch_azw3).start()
         root.after(250, self.update, outqueue)
 
 root = tk.Tk()
