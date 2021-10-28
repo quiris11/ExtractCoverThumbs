@@ -390,6 +390,7 @@ def extract_cover_thumbs(is_silent, is_overwrite_pdoc_thumbs,
                     'thumbnail_%s_%s_portrait.jpg' % (asin, doctype)
                 )
                 if (not os.path.isfile(thumbpath) or
+                        (os.path.isfile(thumbpath) and os.path.getsize(thumbpath) < 1024) or  # "image not availabe" stub
                         (is_overwrite_pdoc_thumbs and doctype == 'PDOC') or
                         (is_overwrite_amzn_thumbs and (
                             doctype == 'EBOK' or doctype == 'EBSP'
